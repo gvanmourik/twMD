@@ -1,4 +1,4 @@
-# Project 1
+# twMD
 
 ### Prerequisites:
 * [CMake](https://cmake.org/download/) (Version >= 3.0)
