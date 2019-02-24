@@ -22,22 +22,28 @@ cmake --version
 
 
 ### Building:
+
+To build:
 ```
-<run instructions>
+./run_build
+```
+
+To remove build:
+```
+./remove_build
 ```
 
 ### Running:
-Navigate to the build directory.
 
-To run the test config file:
+To run:
 ```
-./bin/sim01 ../src/testConfig.conf
+./build/bin/twMD
 ```
 
-To run other config files:
+<!-- To run other config files:
 ```
 ./bin/sim01 <file_path>
-```
+``` -->
 
 ### Notes:
 
