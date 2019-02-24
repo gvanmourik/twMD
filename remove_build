@@ -1,0 +1,8 @@
+#! /bin/bash
+
+if [ -d "build" ]; then
+	echo " -->removing build..."
+	rm -rf build/
+else
+	echo " ERROR: No build directory to remove!"
+fi

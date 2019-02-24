@@ -1,0 +1,15 @@
+#! /bin/bash
+
+if [ ! -d "build" ]; then
+	echo " -->making build directory..."
+	mkdir build
+fi
+echo " -->in the build directory..."
+cd build/
+cmake ../
+echo " -->building the executables..."
+make -j2 && install
+echo " -->build is done..."
+echo ""
+echo " -->Navigate to build/bin to run 'twMD'"
+echo ""
