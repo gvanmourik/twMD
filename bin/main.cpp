@@ -2,6 +2,9 @@
 #include <iostream>
 
 #include "FileIO.h"
+#include "Atoms.h"
+#include "Electrons.h"
+
 
 bool checkArgCount(int argc);
 
@@ -16,7 +19,7 @@ int main(int argc, char** argv)
 	ConfigData configData;
 	file.readConfigFile(configFilePath, configData);
 	configData.print();
-	
+
 
 	return 0;
 }

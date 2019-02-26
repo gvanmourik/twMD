@@ -5,17 +5,12 @@
 #include <string>
 #include <unordered_map>
 
+#define NOT_SET_DOUBLE -1.0
+#define NOT_SET_POS nullptr
+
 // Typedefs
 typedef std::vector<int> Box_t;
-
-// modify later for variable number of dims with this link:
-// https://stackoverflow.com/questions/3836648/structure-or-class-with-variable-number-of-members
-typedef struct Atom_t
-{
-	double x;
-	double y;
-	double z;
-} Atom_t;
+typedef std::unordered_map<std::string, bool> CheckSet_t;
 
 
 // X-macros
