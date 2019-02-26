@@ -2,6 +2,7 @@
 
 ### Prerequisites:
 * [CMake](https://cmake.org/download/) (Version >= 3.0)
+* [Boost](https://www.boost.org/doc/libs/1_69_0/more/getting_started/unix-variants.html) (Unix variant) or [Boost](https://www.boost.org/doc/libs/1_69_0/more/getting_started/windows.html) (Windows)
 * cmake (configured as an available bash command, to do so follow the instructions below)
 
 To add cmake as a macOS bash command:

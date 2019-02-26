@@ -1,15 +1,22 @@
 #! /bin/bash
 
 if [ ! -d "build" ]; then
-	echo " -->making build directory..."
+	echo "-- making build directory..."
 	mkdir build
 fi
-echo " -->in the build directory..."
+echo "-- in the build directory..."
 cd build/
 cmake ../
-echo " -->building the executables..."
+echo "-- building the executables..."
 make -j2 && install
-echo " -->build is done..."
-echo ""
-echo " -->Navigate to build/bin to run 'twMD'"
-echo ""
+# echo "return status is = $?"
+if [ "$?" -eq 64 ]; then
+	echo ""
+	echo "-- build is done..."
+	echo "-- Navigate to build/bin to run the 'twMD' executable."
+	echo ""
+else
+	echo ""
+	echo "-- build failed due to a compile error..."
+	echo ""
+fi
