@@ -3,25 +3,35 @@
 
 #include "FileIO.h"
 
+bool checkArgCount(int argc);
+
 int main(int argc, char** argv)
 {
-	// std::string configFilePath = argv[1];
+	if ( !checkArgCount(argc) )
+		return -1;
+	std::string configFilePath = argv[1];
 
-	if (argc > 2)
-	{
-		std::cout << " Too many arguments provided..." << std::endl;
-	}
-	// if (argc != 2)
-	// {
-	// 	std::cout << " Please input a file name..." << std::endl;
-	// }
-	// else if (configFilePath.find(".conf") == std::string::npos)
-	// {
-	// 	std::cout << " ERROR: Config file is the wrong file type!" << std::endl;
-	// 	exit(EXIT_FAILURE);
-	// }
 
-	std::cout << "Hello world!" << std::endl;
+	FileIO file;
+	ConfigData configData;
+	file.readConfigFile(configFilePath, configData);
+	configData.print();
+	
 
 	return 0;
+}
+
+bool checkArgCount(int argc)
+{
+	if (argc > 2)
+	{
+		std::cout << " ERROR: Too many arguments provided!" << std::endl;
+		return false;
+	}
+	if (argc != 2)
+	{
+		std::cout << " ERROR: No config file path provided!" << std::endl;
+		return false;
+	}
+	return true;
 }
