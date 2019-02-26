@@ -1,5 +1,5 @@
-#ifndef FILE_IO
-#define FILE_IO
+#ifndef FILE_IO_H
+#define FILE_IO_H
 
 #include <map>
 #include <string>
@@ -118,4 +118,4 @@ public:
 
 
 
-#endif /* FILE_IO */
+#endif /* FILE_IO_H */

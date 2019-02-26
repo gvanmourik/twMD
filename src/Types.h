@@ -1,5 +1,5 @@
-#ifndef TYPES
-#define TYPES
+#ifndef TYPES_H
+#define TYPES_H
 
 #include <vector>
 #include <string>
@@ -7,6 +7,15 @@
 
 // Typedefs
 typedef std::vector<int> Box_t;
+
+// modify later for variable number of dims with this link:
+// https://stackoverflow.com/questions/3836648/structure-or-class-with-variable-number-of-members
+typedef struct Atom_t
+{
+	double x;
+	double y;
+	double z;
+} Atom_t;
 
 
 // X-macros
@@ -32,4 +41,4 @@ typedef std::vector<int> Box_t;
 
 
 
-#endif /* TYPES */
+#endif /* TYPES_H */

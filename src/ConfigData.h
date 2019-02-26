@@ -1,5 +1,5 @@
-#ifndef CONFIG_DATA
-#define CONFIG_DATA
+#ifndef CONFIG_DATA_H
+#define CONFIG_DATA_H
 
 #include <string>
 #include <fstream>
@@ -59,4 +59,4 @@ public:
 
 
 
-#endif /* CONFIG_DATA */
+#endif /* CONFIG_DATA_H */
