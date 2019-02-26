@@ -8,9 +8,9 @@ echo "-- in the build directory..."
 cd build/
 cmake ../
 echo "-- building the executables..."
-make -j2 && install
+make -j2
 # echo "return status is = $?"
-if [ "$?" -eq 64 ]; then
+if [ "$?" -eq 0 ]; then
 	echo ""
 	echo "-- build is done..."
 	echo "-- Navigate to build/bin to run the 'twMD' executable."
