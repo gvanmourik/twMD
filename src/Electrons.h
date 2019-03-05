@@ -1,24 +1,33 @@
 #ifndef ELECTRONS_H
 #define ELECTRONS_H
 
-#include "Gaussian.h"
+#include "Atoms.h"
+#include "Electron.h"
 
-typedef std::vector<Gaussian*> GaussianList_t;
+typedef std::vector<Electron*> ElectronList_t;
 
-class Electron
+class Electrons
 {
 private:
-	GaussianList_t Gaussians;
+	ElectronList_t Electrons;
 
 public:
 	// Access functions
-	GaussianList_t getGaussians() { return Gaussians; }
+	ElectronList_t getElectrons() { return Electrons; }
 
 
-	void addGaussian(double Cr, double Ci, double S, double Rho, Atom* Pos) 
+	void addElectron(double Cr, double Ci, double S, double Rho, AtomList_t &Atoms) 
 	{ 
-		Gaussian* g = new Gaussian(Cr, Ci, S, Rho, Pos);
-		Gaussians.push_back(g);
+		Electron* e;
+
+		//add gaussian to each atom in the box
+		for (auto atom : Atoms)
+		{
+			e->addGaussian(Cr, Ci, S, Rho, atom->pos());
+		}
+
+		//add to the electron list
+		Electrons.push_back(e);
 	}
 
 

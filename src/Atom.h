@@ -2,27 +2,32 @@
 #define ATOM_H
 
 #include "Types.h"
+#include "SourceIncludes.h"
+#include "ParticleInfo.h"
 
-// modify later for variable number of dims with this link:
-// https://stackoverflow.com/questions/3836648/structure-or-class-with-variable-number-of-members
+
 class Atom
 {
 private:
-	double x;
-	double y;
-	double z;
+	Position* P;		//position
+	Velocity* V;		//velocity
+	double Z; 			//charge
 
 
 public:
-	Atom() : x(NOT_SET_DOUBLE), y(NOT_SET_DOUBLE), z(NOT_SET_DOUBLE){}
-	Atom(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+	Atom(Position* _P, Velocity* _V, double _Z) : P(_P), V(_V), Z(_Z) {}
 	~Atom() {}
 
 	// Access functions
-	//MODIFY!! to return bool
-	double X() { return x; } 
-	double Y() { return y; }
-	double Z() { return z; }
+	Position* pos() { return P; }
+	Velocity* vel() { return V; }
+	double x() { return P->x(); }
+	double y() { return P->y(); }
+	double z() { return P->z(); }
+	double r() 
+	{
+		return sqrt( pow(P->x(), 2) + pow(P->y(), 2) + pow(P->z(), 2) );
+	} 
 
 
 };

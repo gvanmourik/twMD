@@ -1,9 +1,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <vector>
-#include <string>
-#include <unordered_map>
+#include "SourceIncludes.h"
+
 
 #define NOT_SET_DOUBLE -1.0
 #define NOT_SET_POS nullptr

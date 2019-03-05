@@ -3,6 +3,8 @@
 
 #include "Atom.h"
 #include "Types.h"
+#include "ParticleInfo.h"
+#include "SourceIncludes.h"
 
 typedef std::vector<Atom*> AtomList_t;
 
@@ -15,9 +17,11 @@ private:
 public:
 	AtomList_t getAtoms() { return Atoms; }
 
-	void addAtom(double x, double y, double z)
+	void addAtom(double x, double y, double z, double charge)
 	{
-		Atom* a = new Atom(x, y, z);
+		Position* pos = new Position(x, y, z);
+		Velocity* v = new Velocity(0.0, 0.0, 0.0);
+		Atom* a = new Atom(pos, v, charge);
 		Atoms.push_back(a);
 	}
 

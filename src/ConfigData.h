@@ -1,10 +1,8 @@
 #ifndef CONFIG_DATA_H
 #define CONFIG_DATA_H
 
-#include <string>
-#include <fstream>
-
 #include "Types.h"
+#include "SourceIncludes.h"
 
 
 class ConfigData

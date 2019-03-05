@@ -1,8 +1,8 @@
 #ifndef GAUSSIAN_H
 #define GAUSSIAN_H
 
-#include "Atom.h"
 #include "Types.h"
+#include "ParticleInfo.h"
 
 class Gaussian
 {
@@ -11,13 +11,13 @@ private:
 	double Ci; 		//imag-part of the gaussian mag
 	double S; 		//gaussian width
 	double Rho;		//gaussian momentum
-	Atom* Pos;	//pointer to the position of the gaussian
+	Position* Pos;	//pointer to the position of the gaussian
 
 public:
 	Gaussian() : Cr(NOT_SET_DOUBLE), Ci(NOT_SET_DOUBLE),
 				 S(NOT_SET_DOUBLE), Rho(NOT_SET_DOUBLE),
 				 Pos(nullptr) {}
-	Gaussian(double _Cr, double _Ci, double _S, double _Rho, Atom* _Pos) :
+	Gaussian(double _Cr, double _Ci, double _S, double _Rho, Position* _Pos) :
 				 Cr(_Cr), Ci(_Ci),
 				 S(_S), Rho(_Rho),
 				 Pos(_Pos) {}
@@ -28,7 +28,7 @@ public:
 	void setCi(double _Ci) { Ci = _Ci; }
 	void setS(double _S) { S = _S; }
 	void setRho(double _Rho) { Rho = _Rho; }
-	void setPos(Atom* _Pos) { Pos = _Pos; }
+	void setPos(Position* _Pos) { Pos = _Pos; }
 
 	bool getCr(double &retCr) 
 	{ 
@@ -71,7 +71,7 @@ public:
 	}
 
 	// pass the pos pointer by reference
-	bool getPos(Atom* &retPos) 
+	bool getPos(Position* &retPos) 
 	{ 
 		if (Pos != NOT_SET_POS) 
 		{
