@@ -17,7 +17,8 @@ int main(int argc, char** argv)
 
 	FileIO file;
 	ConfigData configData;
-	file.readConfigFile(configFilePath, configData);
+	if ( !file.readConfigFile(configFilePath, configData) )
+		return -1;
 	configData.print();
 
 

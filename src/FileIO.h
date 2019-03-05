@@ -12,10 +12,10 @@
 #include "Types.h"
 #include "ConfigData.h"
 
-// to determine valid init positions
-#define X(a) #a,
-	static std::vector<std::string> InitPosStrings = { INIT_POS };
-#undef X
+// // to determine valid init positions
+// #define X(a) #a,
+// 	static std::vector<std::string> InitPosTypes = { INIT_POS };
+// #undef X
 
 
 class FileIO
@@ -91,11 +91,8 @@ public:
 				}
 				if ( descriptor == "InitPos" )
 				{
-					if( !(std::find(InitPosStrings.begin(), InitPosStrings.end(), value) != InitPosStrings.end()) ) 
-					{
-						std::cout << " ERROR: InitPos in config file is not one of the accepted types!" << std::endl;
-					    return false;
-					}
+					if ( !isInitPosType(value) )
+						return false;
 					CD.setInitPos(value);
 				}
 				if ( descriptor == "TimeStep" )
@@ -122,11 +119,11 @@ public:
 				}
 
 				// atom descriptors
-				if ( descriptor == "AtomCharge" )
+				if ( descriptor == "AtomicCharge" )
 				{
 					CD.setZ( std::atof(value.c_str()) );
 				}
-				if ( descriptor == "AtomMass" )
+				if ( descriptor == "AtomicMass" )
 				{
 					CD.setM( std::atof(value.c_str()) );
 				}
@@ -138,7 +135,7 @@ public:
 		}
 		else
 		{
-			std::cout << " ERROR: Config file did not open properly!" << std::endl;
+			std::cout << " ERROR: Config file did not open properly! Check to make sure it exists." << std::endl;
 			return false;
 		}
 		
