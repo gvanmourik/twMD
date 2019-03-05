@@ -19,12 +19,12 @@ private:
 	double Ci;
 	double S;
 	double Rho;
-	double Z;		//atom charge
-	double M; 		//atom mass
+	double Z;		//atomic charge
+	double M; 		//atomic mass
 
 
 public:
-	// DEFAULTS??
+	// ADD errors if parameters are not specified!!!!!!!!!!
 	ConfigData() {}
 	// ConfigData(int _ND, int _NI, int _NE, Box_t _BoxSize, std::string _InitPos, 
 	// 		   double _dT, int BoxMag=1) : 
@@ -70,9 +70,9 @@ public:
 		std::cout << "\t# GaussianMagImag = " << Ci << std::endl;
 		std::cout << "\t# GuassianWidth = " << S << std::endl;
 		std::cout << "\t# GaussianMomentum = " << Rho << std::endl;
-		std::cout << "# Atom Parameters:" << std::endl;
-		std::cout << "\t# AtomCharge = " << Z << std::endl;
-		std::cout << "\t# AtomMass = " << M << std::endl;
+		std::cout << "# Atomic Parameters:" << std::endl;
+		std::cout << "\t# AtomicCharge = " << Z << std::endl;
+		std::cout << "\t# AtomicMass = " << M << std::endl;
 	}
 
 };
