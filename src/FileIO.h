@@ -77,13 +77,17 @@ public:
 				if ( descriptor == "BoxSize" )
 				{
 					Box_t box;
-					box.push_back( std::atoi(value.c_str()) );
+					box.push_back( std::atof(value.c_str()) );
 					for (int i = 0; i < CD.getNDim()-1; ++i)
 					{
 						ss >> std::skipws >> value;
-						box.push_back( std::atoi(value.c_str()) );
+						box.push_back( std::atof(value.c_str()) );
 					}
 					CD.setBoxSize(box);
+				}
+				if ( descriptor == "CutoffRadius" )
+				{
+					CD.setCutoffRadius( std::atof(value.c_str()) );
 				}
 				if ( descriptor == "InitPos" )
 				{
@@ -98,6 +102,35 @@ public:
 				{
 					CD.setTimeStep( std::atof(value.c_str()) );
 				}
+
+				// gaussian descriptors
+				if ( descriptor == "GaussianMagReal" )
+				{
+					CD.setCr( std::atof(value.c_str()) );
+				}
+				if ( descriptor == "GaussianMagImag" )
+				{
+					CD.setCi( std::atof(value.c_str()) );
+				}
+				if ( descriptor == "GuassianWidth" )
+				{
+					CD.setS( std::atof(value.c_str()) );
+				}
+				if ( descriptor == "GaussianMomentum" )
+				{
+					CD.setRho( std::atof(value.c_str()) );
+				}
+
+				// atom descriptors
+				if ( descriptor == "AtomCharge" )
+				{
+					CD.setZ( std::atof(value.c_str()) );
+				}
+				if ( descriptor == "AtomMass" )
+				{
+					CD.setM( std::atof(value.c_str()) );
+				}
+
 
 				std::getline(configFile, currentLine);
 			}

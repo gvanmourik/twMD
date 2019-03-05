@@ -8,7 +8,7 @@
 #define NOT_SET_POS nullptr
 
 // Typedefs
-typedef std::vector<int> Box_t;
+typedef std::vector<double> Box_t;
 typedef std::unordered_map<std::string, bool> CheckSet_t;
 
 
