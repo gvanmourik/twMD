@@ -19,9 +19,15 @@ int main(int argc, char** argv)
 	ConfigData configData;
 	if ( !file.readConfigFile(configFilePath, configData) )
 		return -1;
+	
+	//init atom positions
+	Atoms* atoms = new Atoms();
+	atoms->init(configData);
+	//debug with print
+	atoms->printPositions();
+
+
 	configData.print();
-
-
 	return 0;
 }
 

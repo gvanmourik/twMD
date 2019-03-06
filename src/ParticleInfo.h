@@ -25,6 +25,8 @@ public:
 	void set_y(double _Y) { Y = _Y; }
 	void set_z(double _Z) { Z = _Z; }
 
+	friend class Position;
+	friend class Velocity;
 };
 
 
@@ -33,6 +35,13 @@ class Position : public ParticleInfo
 public:
 	Position(double _X, double _Y, double _Z) : ParticleInfo(_X, _Y, _Z) {}
 	~Position() {}
+
+	virtual void print()
+	{
+		std::cout << "X = " << X << std::endl;
+		std::cout << "Y = " << Y << std::endl;
+		std::cout << "Z = " << Z << std::endl;
+	}
 };
 
 class Velocity : public ParticleInfo 
@@ -40,6 +49,13 @@ class Velocity : public ParticleInfo
 public:
 	Velocity(double _X, double _Y, double _Z) : ParticleInfo(_X, _Y, _Z) {}
 	~Velocity() {}
+
+	void print()
+	{
+		std::cout << "Vx = " << X << std::endl;
+		std::cout << "Vy = " << Y << std::endl;
+		std::cout << "Vz = " << Z << std::endl;
+	}
 };
 
 

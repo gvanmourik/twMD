@@ -47,11 +47,24 @@ public:
 	void setZ(double _Z) { Z = _Z; }
 	void setM(double _M) { M = _M; }
 	
-	int getNDim() { return NDim; }
-	
+	int getNDim() const { return NDim; }
+	int getNIons() const { return NIons; }
+	int getNElec() const { return NElec; }
+	Box_t getBoxSize() const { return BoxSize; }
+	double getCutoffRadius() const { return Radius; }
+	std::string getInitPos() const { return InitPos; }
+	double getdT() const { return dT; }
+	double getCr() const { return Cr; }
+	double getCi() const { return Ci; }
+	double getS() const { return S; }
+	double getRho() const { return Rho; }
+	double getCharge() const { return Z; }
+	double getMass() const { return M; }
+
 
 	void print()
 	{
+		std::cout << std::endl;
 		std::cout << "# Configuration Parameters:" << std::endl;
 		std::cout << "\t# NDim = " << NDim << std::endl;
 		std::cout << "\t# NIons = " << NIons << std::endl;
@@ -73,6 +86,7 @@ public:
 		std::cout << "# Atomic Parameters:" << std::endl;
 		std::cout << "\t# AtomicCharge = " << Z << std::endl;
 		std::cout << "\t# AtomicMass = " << M << std::endl;
+		std::cout << std::endl;
 	}
 
 };
