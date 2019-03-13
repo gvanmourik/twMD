@@ -35,6 +35,7 @@ public:
 
 	bool readConfigFile(std::string _FilePath, ConfigData &CD) 
 	{
+		// check if the file has the correct extension
 		if (_FilePath.find(".conf") == std::string::npos)
 		{
 			std::cout << " ERROR: Cannot read config file. Wrong file type!" << std::endl;
@@ -74,9 +75,21 @@ public:
 				{
 					CD.setNElec( std::atoi(value.c_str()) );
 				}
+				if ( descriptor == "NBinsX" )
+				{
+					CD.setNBinsX( std::atoi(value.c_str()) );
+				}
+				if ( descriptor == "NBinsY" )
+				{
+					CD.setNBinsY( std::atoi(value.c_str()) );
+				}
+				if ( descriptor == "NBinsZ" )
+				{
+					CD.setNBinsZ( std::atoi(value.c_str()) );
+				}
 				if ( descriptor == "BoxSize" )
 				{
-					Box_t box;
+					BoxSize_t box;
 					box.push_back( std::atof(value.c_str()) );
 					for (int i = 0; i < CD.getNDim()-1; ++i)
 					{

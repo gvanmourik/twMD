@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "FileIO.h"
-#include "Atoms.h"
+#include "Box.h"
 #include "Electrons.h"
 
 
@@ -20,14 +20,16 @@ int main(int argc, char** argv)
 	if ( !file.readConfigFile(configFilePath, configData) )
 		return -1;
 	
-	//init atom positions
-	Atoms* atoms = new Atoms();
-	atoms->init(configData);
-	//debug with print
-	atoms->printPositions();
-
-
+	//display config data
 	configData.print();
+
+	//init atom positions
+	Box* box = new Box(&configData);
+	// box->initPos();
+	//debug with print
+	box->printPositions();
+	box->printBins();
+
 	return 0;
 }
 

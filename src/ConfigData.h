@@ -11,7 +11,10 @@ private:
 	int NDim;
 	int NIons;
 	int NElec;
-	Box_t BoxSize;
+	int NBinsX;
+	int NBinsY;
+	int NBinsZ;
+	BoxSize_t BoxSize;
 	double Radius;
 	std::string InitPos; 
 	double dT;
@@ -26,7 +29,7 @@ private:
 public:
 	// ADD errors if parameters are not specified!!!!!!!!!!
 	ConfigData() {}
-	// ConfigData(int _ND, int _NI, int _NE, Box_t _BoxSize, std::string _InitPos, 
+	// ConfigData(int _ND, int _NI, int _NE, BoxSize_t _BoxSize, std::string _InitPos, 
 	// 		   double _dT, int BoxMag=1) : 
 	// 		   		NDim(_ND), NIons(_NI), NElec(_NE), BoxSize(_BoxSize), 
 	// 		   		InitPos(_InitPos), dT(_dT) {}
@@ -36,7 +39,10 @@ public:
 	void setNDim(int _NDim) { NDim = _NDim; }
 	void setNIons(int _NIons) { NIons = _NIons; }
 	void setNElec(int _NElec) { NElec = _NElec; }
-	void setBoxSize(Box_t _BoxSize) { BoxSize = _BoxSize; }
+	void setNBinsX(int _NBinsX) { NBinsX = _NBinsX; }
+	void setNBinsY(int _NBinsY) { NBinsY = _NBinsY; }
+	void setNBinsZ(int _NBinsZ) { NBinsZ = _NBinsZ; }
+	void setBoxSize(BoxSize_t _BoxSize) { BoxSize = _BoxSize; }
 	void setCutoffRadius(double _radius) { Radius = _radius; }
 	void setInitPos(std::string _InitPos) { InitPos = _InitPos; }
 	void setTimeStep(double _dT) { dT = _dT; }
@@ -50,7 +56,10 @@ public:
 	int getNDim() const { return NDim; }
 	int getNIons() const { return NIons; }
 	int getNElec() const { return NElec; }
-	Box_t getBoxSize() const { return BoxSize; }
+	int getNBinsX() const { return NBinsX; }
+	int getNBinsY() const { return NBinsY; }
+	int getNBinsZ() const { return NBinsZ; }
+	BoxSize_t getBoxSize() const { return BoxSize; }
 	double getCutoffRadius() const { return Radius; }
 	std::string getInitPos() const { return InitPos; }
 	double getdT() const { return dT; }
@@ -69,6 +78,9 @@ public:
 		std::cout << "\t# NDim = " << NDim << std::endl;
 		std::cout << "\t# NIons = " << NIons << std::endl;
 		std::cout << "\t# NElec = " << NElec << std::endl;
+		std::cout << "\t# NBinsX = " << NBinsX << std::endl;
+		std::cout << "\t# NBinsY = " << NBinsY << std::endl;
+		std::cout << "\t# NBinsZ = " << NBinsZ << std::endl;
 		int count = 0;
 		for (auto dim : BoxSize)
 		{

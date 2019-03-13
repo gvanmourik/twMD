@@ -25,6 +25,17 @@ public:
 	void set_y(double _Y) { Y = _Y; }
 	void set_z(double _Z) { Z = _Z; }
 
+	// // generate a hash value for the particle;
+	// std::size_t getKey()
+	// {
+	// 	std::size_t seed = 0;
+	// 	boost::hash_combine(seed, X);
+	// 	boost::hash_combine(seed, Y);
+	// 	boost::hash_combine(seed, Z);
+
+	// 	return seed;
+	// }
+
 	friend class Position;
 	friend class Velocity;
 };
@@ -38,9 +49,9 @@ public:
 
 	virtual void print()
 	{
-		std::cout << "X = " << X << std::endl;
-		std::cout << "Y = " << Y << std::endl;
-		std::cout << "Z = " << Z << std::endl;
+		std::cout << "X = " << X << ", ";
+		std::cout << "Y = " << Y << ", ";
+		std::cout << "Z = " << Z;
 	}
 };
 
@@ -52,9 +63,9 @@ public:
 
 	void print()
 	{
-		std::cout << "Vx = " << X << std::endl;
-		std::cout << "Vy = " << Y << std::endl;
-		std::cout << "Vz = " << Z << std::endl;
+		std::cout << "\tVx = " << X << std::endl;
+		std::cout << "\tVy = " << Y << std::endl;
+		std::cout << "\tVz = " << Z << std::endl;
 	}
 };
 

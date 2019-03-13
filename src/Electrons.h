@@ -1,7 +1,7 @@
 #ifndef ELECTRONS_H
 #define ELECTRONS_H
 
-#include "Atoms.h"
+#include "Box.h"
 #include "Electron.h"
 
 typedef std::vector<Electron*> ElectronList_t;

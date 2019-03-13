@@ -27,11 +27,15 @@ public:
 	double z() const { return P->z(); }
 	double mass() const { return M; }
 	double charge() const { return Z; }
-	double r() const
+	double rSquared() const
 	{
-		return sqrt( pow(P->x(), 2) + pow(P->y(), 2) + pow(P->z(), 2) );
-	} 
+		return pow(P->x(), 2) + pow(P->y(), 2) + pow(P->z(), 2);
+	}
 
+	void print()
+	{
+		P->print();
+	}
 
 };
 
