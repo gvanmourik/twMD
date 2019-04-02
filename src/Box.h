@@ -160,29 +160,37 @@ public:
 			// 	std::cout << "no center bin atoms..." << std::endl << std::endl;
 			
 			// printAtomList(surroundingAtoms);
-			std::cout << "surroundingAtoms.size() = " << surroundingAtoms.size() << std::endl;
-			std::cout << "centerBinAtoms.size() = " << centerBinAtoms.size() << std::endl;
-			std::cout << "updating the neighbor list for each atom in the center bin..." << std::endl;
+	//		std::cout << "surroundingAtoms.size() = " << surroundingAtoms.size() << std::endl;
+	//		std::cout << "centerBinAtoms.size() = " << centerBinAtoms.size() << std::endl;
+	//		std::cout << "updating the neighbor list for each atom in the center bin..." << std::endl;
 			
 	//		dAlphaTotalTime = std::chrono::seconds::zero();
 	//		dRTotalTime = std::chrono::seconds::zero();
 
 			//for each atom in the bin
-			for (auto atom : centerBinAtoms)
+			#pragma omp parallel for
 			{
-				// std::cout << "about to update neighbor list..." << std::endl;
-				//update neighbor list per atom
-				atom->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
-
-				// std::cout << "dAlpha's runtime = " << dAlphaTotalTime.count() << " seconds" << std::endl;
-				// std::cout << "dR runtime = " << dRTotalTime.count() << " seconds" << std::endl;
-				// int stop;
-				// std::cin >> stop;
-				// std::cout << "done updating the neighbor list..." << std::endl;
+				for (int atom=0; atom < centerBinAtoms.size(); ++atom)
+				{
+					centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
+				}
 			}
+
+				// for (auto atom : centerBinAtoms)
+				// {
+				// 	// std::cout << "about to update neighbor list..." << std::endl;
+				// 	//update neighbor list per atom
+				// 	centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
+
+				// 	// std::cout << "dAlpha's runtime = " << dAlphaTotalTime.count() << " seconds" << std::endl;
+				// 	// std::cout << "dR runtime = " << dRTotalTime.count() << " seconds" << std::endl;
+				// 	// int stop;
+				// 	// std::cin >> stop;
+				// 	// std::cout << "done updating the neighbor list..." << std::endl;
+				// }
 	//		std::cout << "dAlpha's runtime = " << dAlphaTotalTime.count() << " seconds" << std::endl;
 	//		std::cout << "dR runtime = " << dRTotalTime.count() << " seconds" << std::endl;
-			std::cout << "done updating the neighbor list..." << std::endl;
+	//		std::cout << "done updating the neighbor list..." << std::endl;
 			// std::cin >> stop;
 		}
 
@@ -245,7 +253,7 @@ private:
 				y = getRandom(0.0, yBoxSize);
 				z = getRandom(0.0, zBoxSize);
 				
-				//test with set positions
+				// // test with set positions
 				// if (ion == 0)
 				// {
 				// 	x = 0.1;
@@ -262,7 +270,7 @@ private:
 				// {
 				// 	x = 0.1;
 				// 	y = 0.1;
-				// 	z = 1.9;
+				// 	z = 1.0;
 				// } 
 			}
 
@@ -340,7 +348,7 @@ private:
 		return BinAtomList[binKey];
 	}
 
-	double getRandom(double min, double max)
+	double getRandom(const double &min, const double &max)
 	{
 	  	timeval t;
 	  	gettimeofday(&t, nullptr);
@@ -351,7 +359,7 @@ private:
 	}
 
 	// generate a hash value for the bin key;
-	std::size_t getKey(double x, double y, double z)
+	std::size_t getKey(const double &x, const double &y, const double &z)
 	{
 		int xBin, yBin, zBin;
 		xBin = floor(x/xBinSize);
@@ -365,7 +373,7 @@ private:
 		return getBinID(xBin, yBin, zBin);
 	}
 
-	std::size_t getBinID(int xBin, int yBin, int zBin)
+	std::size_t getBinID(const int &xBin, const int &yBin, const int &zBin)
 	{
 		std::size_t key = 0;
 		boost::hash_combine(key, xBin);
@@ -380,7 +388,7 @@ private:
 		return key;
 	}
 
-	int mod(int a, int b)
+	int mod(const int &a, const int &b)
 	{ 
 		return (a%b+b)%b; 
 	}

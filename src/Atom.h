@@ -1,6 +1,7 @@
 #ifndef ATOM_H
 #define ATOM_H
 
+#include <omp.h>
 #include <algorithm>
 
 #include "Types.h"
@@ -68,36 +69,47 @@ public:
 
 		// std::cout << "in updateNeighborList()..." << std::endl;
 		Neighbors.clear();
+		Atom* atom;
 		double dX, dY, dZ;
 		double cutoffSquared = pow(cutoff, 2.0);
 		// std::cout << "iterating over each of the surrounding atoms..." << std::endl;
-		for (auto atom : closeAtoms)
+
+		#pragma omp parallel for
 		{
-			//skip the calculations if the atom in question is itself
-			if ( this == atom )
-				continue;
-
-			// std::cout << "computing dX, dY, dZ, and dR..." << std::endl;
-		//	auto start = std::chrono::high_resolution_clock::now();
-			dX = dAlpha(x(), atom->x(), Lx);
-			dY = dAlpha(y(), atom->y(), Ly);
-			dZ = dAlpha(z(), atom->z(), Lz);
-		//	auto finish = std::chrono::high_resolution_clock::now();
-		//	t1 += finish - start;
-	
-
-			// std::cout << "after compute..." << std::endl;
-			// std::cout << "dR = " << dR << std::endl;
-			// std::cout << "cutoffSquared = " << cutoffSquared << std::endl;
-			
-		//	start = std::chrono::high_resolution_clock::now();
-			if (dR(dX,dY,dZ) < cutoffSquared)
+			for (int atomIndex=0; atomIndex < closeAtoms.size(); ++atomIndex)
 			{
-				Neighbors.push_back(atom);
+				atom = closeAtoms[atomIndex];
+				//skip the calculations if the atom in question is itself
+				if ( this == atom )
+					continue;
+
+				// std::cout << "computing dX, dY, dZ, and dR..." << std::endl;
+			//	auto start = std::chrono::high_resolution_clock::now();
+				dX = dAlpha(x(), atom->x(), Lx);
+				dY = dAlpha(y(), atom->y(), Ly);
+				dZ = dAlpha(z(), atom->z(), Lz);
+			//	auto finish = std::chrono::high_resolution_clock::now();
+			//	t1 += finish - start;
+		
+
+				// std::cout << "after compute..." << std::endl;
+				// std::cout << "dR = " << dR << std::endl;
+				// std::cout << "cutoffSquared = " << cutoffSquared << std::endl;
+				
+			//	start = std::chrono::high_resolution_clock::now();
+				if ( dR(dX,dY,dZ) < cutoffSquared )
+				{
+					#pragma omp critical
+					{
+						Neighbors.push_back(atom);
+					}
+				}
+			//	finish = std::chrono::high_resolution_clock::now();
+			//	t2 += finish - start;
 			}
-		//	finish = std::chrono::high_resolution_clock::now();
-		//	t2 += finish - start;
 		}
+
+		
 		// std::cout << "after iteration..." << std::endl;
 
 		// std::cout << "dAlpha's runtime = " << dAlphaTotalTime.count() << " seconds" << std::endl;
