@@ -101,13 +101,16 @@ public:
 					}
 					CD.setBoxSize(box);
 
-					std::cout << "minBoxSize = " << minBoxSize << std::endl;
+					// std::cout << "minBoxSize = " << minBoxSize << std::endl;
 				}
 				if ( descriptor == "CutoffRadius" )
 				{
 					double cutoff = std::atof(value.c_str());
 					if ( !checkCutoffRadius(cutoff, minBoxSize) )
+					{
+						std::cout << "ERROR: The provided cutoff radius is to large for the box!" << std::endl;
 						return false;
+					}
 					CD.setCutoffRadius(cutoff);
 				}
 				if ( descriptor == "InitPos" )
