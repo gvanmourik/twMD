@@ -56,6 +56,7 @@ public:
 
 			// boost::any value;
 			// std::map<std::string, boost::any> Values;
+			double minBoxSize;
 			std::string descriptor, value;
 			std::getline(configFile, currentLine);
 			while ( currentLine != "End MD Configuration File" )
@@ -90,17 +91,24 @@ public:
 				if ( descriptor == "BoxSize" )
 				{
 					BoxSize_t box;
+					minBoxSize = std::atof(value.c_str());
 					box.push_back( std::atof(value.c_str()) );
 					for (int i = 0; i < CD.getNDim()-1; ++i)
 					{
 						ss >> std::skipws >> value;
+						checkMinBoxSize(value, minBoxSize);
 						box.push_back( std::atof(value.c_str()) );
 					}
 					CD.setBoxSize(box);
+
+					std::cout << "minBoxSize = " << minBoxSize << std::endl;
 				}
 				if ( descriptor == "CutoffRadius" )
 				{
-					CD.setCutoffRadius( std::atof(value.c_str()) );
+					double cutoff = std::atof(value.c_str());
+					if ( !checkCutoffRadius(cutoff, minBoxSize) )
+						return false;
+					CD.setCutoffRadius(cutoff);
 				}
 				if ( descriptor == "InitPos" )
 				{
@@ -152,6 +160,22 @@ public:
 			return false;
 		}
 		
+		return true;
+	}
+
+	void checkMinBoxSize(std::string valueStr, double &minValue)
+	{
+		double value = std::atof(valueStr.c_str());
+		if (value < minValue)
+		{
+			minValue = value;
+		}
+	}
+
+	bool checkCutoffRadius(double cutoff, double minBoxDim)
+	{
+		if (cutoff > minBoxDim/2.0)
+			return false;
 		return true;
 	}
 
