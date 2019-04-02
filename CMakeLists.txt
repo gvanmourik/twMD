@@ -13,6 +13,13 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIB_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+# Set the clang compiler
+set(CMAKE_C_COMPILER "/usr/local/Cellar/llvm/8.0.0/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/local/Cellar/llvm/8.0.0/bin/clang++")
+set(OPENMP_LIBRARIES "/usr/local/Cellar/llvm/8.0.0/lib")
+set(OPENMP_INCLUDES "/usr/local/Cellar/llvm/8.0.0/include")
+
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(CMAKE_CXX_STANDARD 11)  # enable C++11 standard
@@ -25,9 +32,38 @@ set(CMAKE_CXX_STANDARD 11)  # enable C++11 standard
 find_package(Boost REQUIRED)
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
-else()
-	message(STATUS "Boost NOT found...install Boost and try again!")
 endif()
+
+# OpenMP check
+# if(APPLE)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+       	set(OpenMP_C "${CMAKE_C_COMPILER}")
+        set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+        set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5")
+        set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+        set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+        set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES})
+    endif()
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      	set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+      	set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+      	set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
+      	set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+      	set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+      	set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+    endif()
+# endif()
+
+find_package(OpenMP REQUIRED)
+if (OPENMP_FOUND)
+    include_directories("${OPENMP_INCLUDES}")
+    link_directories("${OPENMP_LIBRARIES}")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif(OPENMP_FOUND)
+
+
 
 # Verify include directories
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)

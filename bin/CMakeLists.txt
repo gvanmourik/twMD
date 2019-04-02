@@ -4,7 +4,7 @@
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 add_executable(twMD main.cpp)
-# use target_link_libraries to ink libraries
+target_link_libraries(twMD ${OPENMP_LIBRARIES})
 
 install(TARGETS twMD 
 		DESTINATION ${PROJECT_BINARY_DIR}/bin
