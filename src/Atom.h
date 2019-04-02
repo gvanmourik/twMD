@@ -2,8 +2,6 @@
 #define ATOM_H
 
 #include <algorithm>
-#include <chrono>
-#include <boost/multiprecision/cpp_int.hpp>
 
 #include "Types.h"
 #include "ConfigData.h"
@@ -111,9 +109,9 @@ public:
 	inline double dAlpha(const double &x1, const double &x2, const double &L)
 	{
 		if (x1 < x2)
-			return fmin(x2-x1, L-x2-x1);
+			return std::min(x2-x1, L-x2-x1);
 		else
-			return fmin(x1-x2, L-x1-x2);
+			return std::min(x1-x2, L-x1-x2);
 	}
 
 	inline double dR(double &dX, double &dY, double &dZ)
