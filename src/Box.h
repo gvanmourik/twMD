@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <boost/random.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/mpi/collectives.hpp>
 
 #include "Atom.h"
 #include "Types.h"
@@ -112,14 +113,16 @@ public:
 	{
 		double cutoffRadius = data->getCutoffRadius();
 		
+		//debug
+		// std::cout << "generating the stencil..." << std::endl;s
+
 		//generate i j k permutation vector
-		std::cout << "generating the stencil..." << std::endl;
 		auto stencil = getStencil(cutoffRadius);
 
-		//seems correct
-		std::cout << "stencil:" << std::endl;
-		printBinPosList(stencil);
-		std::cout << std::endl;
+		//debug
+		// std::cout << "stencil:" << std::endl;
+		// printBinPosList(stencil);
+		// std::cout << std::endl;
 
 		int bincount = 0;
 	//	int stop;
@@ -131,7 +134,7 @@ public:
 		{
 			//from the binPos create a stencil vector of surrounding bins
 			bincount++;
-			std::cout << "\ngetting the surroundingBins for bin[" << bincount << "]..." << std::endl;
+			// std::cout << "\ngetting the surroundingBins for bin[" << bincount << "]..." << std::endl;
 			auto surroundingBins = getSurroundingBins(centerBin, stencil);
 			// std::cout << "getting the atoms within the center bin..." << std::endl;
 			auto centerBinAtoms = getBinAtoms(centerBin);
@@ -160,21 +163,28 @@ public:
 			// 	std::cout << "no center bin atoms..." << std::endl << std::endl;
 			
 			// printAtomList(surroundingAtoms);
-	//		std::cout << "surroundingAtoms.size() = " << surroundingAtoms.size() << std::endl;
-	//		std::cout << "centerBinAtoms.size() = " << centerBinAtoms.size() << std::endl;
+			// std::cout << "surroundingAtoms.size() = " << surroundingAtoms.size() << std::endl;
+			// std::cout << "centerBinAtoms.size() = " << centerBinAtoms.size() << std::endl;
 	//		std::cout << "updating the neighbor list for each atom in the center bin..." << std::endl;
 			
 	//		dAlphaTotalTime = std::chrono::seconds::zero();
 	//		dRTotalTime = std::chrono::seconds::zero();
 
+
+			//mpi test
+			int binAtomsCount = centerBinAtoms.size();
+			// MPI_Bcast(&binAtomsCount, 1, MPI_INT, 0, MPI_COMM_WORLD); //one-to-all send/recv
+
 			//for each atom in the bin
-			#pragma omp parallel for
+			#pragma omp parallel for num_threads(4)
 			{
-				for (int atom=0; atom < centerBinAtoms.size(); ++atom)
+				for (int atom=0; atom<binAtomsCount; ++atom)
 				{
 					centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
 				}
 			}
+
+			// MPI_Reduce(&mypi, &pi, 1, MPI_Type_vector, MPI_SUM, 0, MPI_COMM_WORLD);
 
 				// for (auto atom : centerBinAtoms)
 				// {

@@ -70,6 +70,31 @@ public:
 	double getCharge() const { return Z; }
 	double getMass() const { return M; }
 
+	// double getMaxBinSize()
+	// {
+	// 	double binSize;
+	// 	double maxBinSize = 0;
+
+	// 	//create numBins vector
+	// 	std::vector<int> NumBins(BoxSize.size());
+	// 	NumBins.push_back(NBinsX);
+	// 	NumBins.push_back(NBinsY);
+	// 	NumBins.push_back(NBinsZ);
+
+	// 	//find maxBinSize
+	// 	for (int dim=0; dim < BoxSize.size(); ++dim)
+	// 	{
+	// 		// std::cout << dim << std::endl;
+	// 		binSize = BoxSize[dim] / (double)NumBins[dim];
+	// 		std::cout << "(double)NumBins[dim] = " << (double)NumBins[dim] << std::endl;
+	// 		if (binSize > maxBinSize)
+	// 		{
+	// 			maxBinSize = binSize;
+	// 			std::cout << "maxbinsize = " << maxBinSize << std::endl;
+	// 		}
+	// 	}
+	// 	return maxBinSize;
+	// }
 
 	void print()
 	{

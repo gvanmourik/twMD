@@ -1,6 +1,7 @@
 #ifndef ATOM_H
 #define ATOM_H
 
+// #include <mpi.h>
 #include <omp.h>
 #include <algorithm>
 
@@ -9,6 +10,8 @@
 #include "SourceIncludes.h"
 #include "ParticleInfo.h"
 
+#include <boost/serialization/vector.hpp>
+
 class Atom;
 typedef std::vector<Atom*> AtomList_t;
 // typedef std::set<Atom*> AtomSet_t;
@@ -16,12 +19,23 @@ typedef std::vector<Atom*> AtomList_t;
 class Atom
 {
 private:
+	friend class boost::serialization::access;
+	
 	Position* P;			//position
 	Velocity* V;			//velocity
 	double M; 				//mass
 	double Z; 				//charge
-
 	AtomList_t Neighbors; 	//list of neighboring atoms
+
+	template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & P;
+        ar & V;
+        ar & M;
+        ar & Z;
+        ar & Neighbors;
+    }
 
 
 public:
@@ -61,7 +75,7 @@ public:
 	}
 
 
-	inline void updateNeighborList(const double &cutoff, const double &Lx, const double &Ly, const double &Lz, AtomList_t &closeAtoms)
+	inline void updateNeighborList(const double &cutoff, const double &Lx, const double &Ly, const double &Lz, const AtomList_t &closeAtoms)
 		//std::chrono::duration<double> &t1, std::chrono::duration<double> &t2)
 	{
 
@@ -74,7 +88,7 @@ public:
 		double cutoffSquared = pow(cutoff, 2.0);
 		// std::cout << "iterating over each of the surrounding atoms..." << std::endl;
 
-		#pragma omp parallel for
+		#pragma omp parallel for num_threads(4) shared(Neighbors) private(dX,dY,dZ)
 		{
 			for (int atomIndex=0; atomIndex < closeAtoms.size(); ++atomIndex)
 			{
@@ -106,9 +120,10 @@ public:
 				}
 			//	finish = std::chrono::high_resolution_clock::now();
 			//	t2 += finish - start;
+				
 			}
 		}
-
+		// std::cout << atomIndex << std::endl;
 		
 		// std::cout << "after iteration..." << std::endl;
 
@@ -126,7 +141,7 @@ public:
 			return std::min(x1-x2, L-x1-x2);
 	}
 
-	inline double dR(double &dX, double &dY, double &dZ)
+	inline double dR(const double &dX, const double &dY, const double &dZ)
 	{
 		return pow(dX, 2) + pow(dY, 2) + pow(dZ, 2);
 	}

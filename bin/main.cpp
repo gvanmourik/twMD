@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <boost/mpi.hpp>
 
 #include "FileIO.h"
 #include "Box.h"
@@ -15,6 +16,7 @@ int main(int argc, char** argv)
 	std::string configFilePath = argv[1];
 
 
+	//Read-in file
 	FileIO file;
 	ConfigData configData;
 	if ( !file.readConfigFile(configFilePath, configData) )
@@ -23,12 +25,18 @@ int main(int argc, char** argv)
 	//display config data
 	configData.print();
 
+	//Setup MPI
+	boost::mpi::environment env(argc, argv);
+	boost::mpi::communicator world;
+
 	//init atom positions
 	Box* box = new Box(&configData);
 	// box->initPos();
 	//debug with print
-	box->printPositions();
-	box->printBins();
+	
+	// box->printPositions();
+	// box->printBins();
+
 
 	return 0;
 }
