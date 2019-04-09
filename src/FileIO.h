@@ -184,8 +184,8 @@ public:
 
 	bool checkCutoffRadius(double cutoff, double minBoxDim, double maxBinSize)
 	{
-		std::cout << "max bin size = " << maxBinSize << std::endl;
-		std::cout << "compare value = " << (minBoxDim-maxBinSize)/2.0 << std::endl;
+		// std::cout << "max bin size = " << maxBinSize << std::endl;
+		// std::cout << "compare value = " << (minBoxDim-maxBinSize)/2.0 << std::endl;
 		if (cutoff > (minBoxDim-maxBinSize)/2.0)
 			return false;
 		return true;
@@ -202,11 +202,11 @@ public:
 		{
 			// std::cout << dim << std::endl;
 			binSize = box[dim] / (double)binNums[dim];
-			std::cout << "binSize = " << binSize << std::endl;
+			// std::cout << "binSize = " << binSize << std::endl;
 			if (binSize > maxBinSize)
 			{
 				maxBinSize = binSize;
-				std::cout << "maxbinsize = " << maxBinSize << std::endl;
+				// std::cout << "maxbinsize = " << maxBinSize << std::endl;
 			}
 		}
 		return maxBinSize;

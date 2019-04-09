@@ -24,6 +24,7 @@ set(CMAKE_CXX_STANDARD 11)
 find_package(Boost REQUIRED)
 if(Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS})
+  FIND_PACKAGE(Boost COMPONENTS mpi serialization REQUIRED)
 endif()
 
 # MPI check

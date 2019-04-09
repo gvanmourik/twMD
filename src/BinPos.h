@@ -1,20 +1,30 @@
 class BinPos
 {
-// private:
-// 	int xBin;
-// 	int yBin;
-// 	int zBin;
+private:
+	friend class boost::serialization::access;
+	int xbin;
+	int ybin;
+	int zbin;
+	
+	template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & xbin;
+        ar & ybin;
+        ar & zbin;
+    }
 
 public:
-	int xBin;
-	int yBin;
-	int zBin;
-
-	BinPos(int x, int y, int z) : xBin(x), yBin(y), zBin(z){}
+	BinPos() : xbin(0), ybin(0), zbin(0) {}
+	BinPos(int x, int y, int z) : xbin(x), ybin(y), zbin(z){}
 	~BinPos(){}
+
+	int xBin() { return xbin; }
+	int yBin() { return ybin; }
+	int zBin() { return zbin; }
 
 	void print()
 	{
-		std::cout << xBin << ", " << yBin << ", " << zBin << std::endl;
+		std::cout << xbin << ", " << ybin << ", " << zbin << std::endl;
 	}
 };

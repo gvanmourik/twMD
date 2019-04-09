@@ -4,17 +4,16 @@
 // #include <mpi.h>
 #include <omp.h>
 #include <algorithm>
+#include <boost/serialization/vector.hpp>
 
 #include "Types.h"
 #include "ConfigData.h"
 #include "SourceIncludes.h"
 #include "ParticleInfo.h"
 
-#include <boost/serialization/vector.hpp>
 
 class Atom;
 typedef std::vector<Atom*> AtomList_t;
-// typedef std::set<Atom*> AtomSet_t;
 
 class Atom
 {
@@ -39,6 +38,7 @@ private:
 
 
 public:
+	Atom() {}
 	Atom(Position* _P, Velocity* _V, double _M, double _Z) : P(_P), V(_V), M(_M), Z(_Z) {}
 	~Atom() {}
 
@@ -78,10 +78,9 @@ public:
 	inline void updateNeighborList(const double &cutoff, const double &Lx, const double &Ly, const double &Lz, const AtomList_t &closeAtoms)
 		//std::chrono::duration<double> &t1, std::chrono::duration<double> &t2)
 	{
-
+		//debug
+		// std::cout << "in updateNeighborList process[" << "]..." << std::endl;
 		
-
-		// std::cout << "in updateNeighborList()..." << std::endl;
 		Neighbors.clear();
 		Atom* atom;
 		double dX, dY, dZ;
@@ -95,7 +94,15 @@ public:
 				atom = closeAtoms[atomIndex];
 				//skip the calculations if the atom in question is itself
 				if ( this == atom )
+				{
+					//debug
+					// std::cout << "is itself..." << std::endl;
 					continue;
+				}
+
+				// std::cout << "y() = " << y() << std::endl;
+				// std::cout << "atom->y() = " << atom->y() << std::endl;
+				// std::cout << "Ly = " << Ly << std::endl;
 
 				// std::cout << "computing dX, dY, dZ, and dR..." << std::endl;
 			//	auto start = std::chrono::high_resolution_clock::now();
@@ -109,6 +116,11 @@ public:
 				// std::cout << "after compute..." << std::endl;
 				// std::cout << "dR = " << dR << std::endl;
 				// std::cout << "cutoffSquared = " << cutoffSquared << std::endl;
+				
+				// std::cout << "dX = " << dX << std::endl;
+				// std::cout << "dY = " << dY << std::endl;
+				// std::cout << "dZ = " << dZ << std::endl;
+				// std::cout << "dR = " << dR(dX,dY,dZ) << std::endl;
 				
 			//	start = std::chrono::high_resolution_clock::now();
 				if ( dR(dX,dY,dZ) < cutoffSquared )
@@ -136,9 +148,15 @@ public:
 	inline double dAlpha(const double &x1, const double &x2, const double &L)
 	{
 		if (x1 < x2)
-			return std::min(x2-x1, L-x2-x1);
+		{
+			// std::cout << "std::min(x2-x1, L-x2-x1) = " << std::min(x2-x1, L-x2+x1) << std::endl;
+			return std::min(x2-x1, L-x2+x1);
+		}
 		else
-			return std::min(x1-x2, L-x1-x2);
+		{
+			// std::cout << "std::min(x1-x2, L-x1-x2) = " << std::min(x1-x2, L-x1+x2) << std::endl;
+			return std::min(x1-x2, L-x1+x2);
+		}
 	}
 
 	inline double dR(const double &dX, const double &dY, const double &dZ)

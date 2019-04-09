@@ -11,6 +11,10 @@ bool checkArgCount(int argc);
 
 int main(int argc, char** argv)
 {
+	//Setup MPI
+	boost::mpi::environment env(argc, argv);
+	boost::mpi::communicator world;
+
 	if ( !checkArgCount(argc) )
 		return -1;
 	std::string configFilePath = argv[1];
@@ -23,18 +27,15 @@ int main(int argc, char** argv)
 		return -1;
 	
 	//display config data
-	configData.print();
-
-	//Setup MPI
-	boost::mpi::environment env(argc, argv);
-	boost::mpi::communicator world;
+	if (world.rank() == 0)
+		configData.print();
 
 	//init atom positions
-	Box* box = new Box(&configData);
-	// box->initPos();
+	Box* box = new Box(&configData, world);
 	//debug with print
 	
-	// box->printPositions();
+	// if (world.rank() == 0)
+	// 	box->printPositions();
 	// box->printBins();
 
 

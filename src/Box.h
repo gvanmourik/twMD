@@ -8,6 +8,7 @@
 #include <boost/random.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/mpi/collectives.hpp>
+#include <boost/serialization/map.hpp>
 
 #include "Atom.h"
 #include "Types.h"
@@ -56,6 +57,7 @@ private:
 	BinMap_t BinAtomList;
 	BinIDList_t BinIDs;
 	BinPosList_t BinPositions;
+	boost::mpi::communicator World;
 	// keyToBin_t keyToBin;
 	// binToKey_t binToKey;
 
@@ -66,20 +68,23 @@ private:
 
 
 public:
-	Box(ConfigData* CD) : data(CD)
+	Box(ConfigData* CD, boost::mpi::communicator world) : data(CD), World(world)
 	{
 		BoxSize_t boxSize = data->getBoxSize();
 		xBoxSize = boxSize[X];
 		yBoxSize = boxSize[Y];
 		zBoxSize = boxSize[Z];
 
-		std::cout << "initializing atom positions..." << std::endl;
-		initPos();
-		std::cout << "initializing bins..." << std::endl;
-		initBins();
-		std::cout << "updating the bin mapping..." << std::endl;
-		updateMapping();
-		std::cout << "building the neighbor list..." << std::endl;
+		if (World.rank() == 0)
+		{
+			std::cout << "initializing atom positions..." << std::endl;
+			initPos();
+			std::cout << "initializing bins..." << std::endl;
+			initBins();
+			std::cout << "updating the bin mapping..." << std::endl;
+			updateMapping();
+			std::cout << "building the neighbor list..." << std::endl;
+		}
 		buildNeighborLists();
 	}
 
@@ -111,40 +116,93 @@ public:
 
 	void buildNeighborLists()
 	{
-		double cutoffRadius = data->getCutoffRadius();
+		const int parentProcess = 0;
+		const int scatterProcess = parentProcess; //scatter from parent
+		double cutoffRadius;
+		BinPosList_t stencil;
+		BinPosList_t recvBins;
+		std::vector<BinPosList_t> binSections( World.size() );
 		
 		//debug
 		// std::cout << "generating the stencil..." << std::endl;s
 
-		//generate i j k permutation vector
-		auto stencil = getStencil(cutoffRadius);
+		
 
 		//debug
 		// std::cout << "stencil:" << std::endl;
 		// printBinPosList(stencil);
 		// std::cout << std::endl;
 
-		int bincount = 0;
+		// int bincount = 0;
 	//	int stop;
 	//	std::chrono::duration<double> dAlphaTotalTime;
 	//	std::chrono::duration<double> dRTotalTime;
+	
 
-		// std::cout << "iterating over the bins..." << std::endl << std::endl;
-		for (auto centerBin : BinPositions)
+		
+		
+		if (World.rank() == 0) 
 		{
+			cutoffRadius = data->getCutoffRadius();
+			stencil = getStencil(cutoffRadius);
+
+			int start, end;
+			int numBins = data->getNBins();
+			int numProcesses = World.size();
+			int myFloor = floor(numBins/numProcesses);
+			int stride = ceil(numBins/numProcesses);
+
+			// split bin positions based on number of processors
+			for (int process=0; process<numProcesses; ++process)
+			{
+				//determine end and start indicies of bin sections
+				start = process*stride;
+				if (myFloor != stride && process == numProcesses-1)
+					end = numBins % start;
+				else
+					end = start + stride;
+
+				//place bins in sections
+				BinPosList_t binSection;
+				for (int i=start; i<end; ++i)
+				{
+					binSection.push_back( BinPositions[i] );
+				}
+				binSections[process] = binSection;
+			}
+  		}
+
+		//bcast stencil and bin positions
+		broadcast(World, stencil, parentProcess);
+		broadcast(World, cutoffRadius, parentProcess);
+		broadcast(World, data, parentProcess);
+		broadcast(World, xBoxSize, parentProcess);
+		broadcast(World, yBoxSize, parentProcess);
+		broadcast(World, zBoxSize, parentProcess);
+		broadcast(World, BinAtomList, parentProcess);
+		std::cout << "in Process[" << World.rank() << "]..." << std::endl;
+
+
+		//scatter bin sections to each process
+		boost::mpi::scatter(World, binSections, recvBins, scatterProcess);
+
+		std::cout << "recvBins.size() for process[" << World.rank() << "] = " << recvBins.size() << std::endl;
+
+		//********************************************************************************
+		//do stuff with recvBins
+		for (auto centerBin : recvBins)
+		{
+			//debug
+			// std::cout << "getting surroundingBins process[" << World.rank() << "]..." << std::endl;
+
 			//from the binPos create a stencil vector of surrounding bins
-			bincount++;
-			// std::cout << "\ngetting the surroundingBins for bin[" << bincount << "]..." << std::endl;
 			auto surroundingBins = getSurroundingBins(centerBin, stencil);
 			// std::cout << "getting the atoms within the center bin..." << std::endl;
 			auto centerBinAtoms = getBinAtoms(centerBin);
 
-			// std::cout << "\ncenterBin bin = ";
-			// centerBin->print();
-			// std::cout << "surroundingBins:" << std::endl;
-			// printBinPosList(surroundingBins);
+			//debug
+			// std::cout << "building the surroundingAtomsList process[" << World.rank() << "]..." << std::endl;
 
-			// std::cout << "building the list of atoms in the surrounding bins..." << std::endl;
 			//build the surroundingAtomsList
 			AtomList_t surroundingAtoms;
 			for (auto surroundingBin : surroundingBins)
@@ -153,28 +211,14 @@ public:
 				if ( surBinAtoms.empty() )
 					continue;
 				
-				// std::cout << "appending to the surrounding atoms list..." << std::endl;
-				//append a copy of surBinAtoms into the surroundingAtoms list
 				surroundingAtoms.insert( surroundingAtoms.begin(), surBinAtoms.begin(), surBinAtoms.end() );
 			}
 
-			// std::cout << "after continue... " << std::endl;
-			// if ( centerBinAtoms.empty() )
-			// 	std::cout << "no center bin atoms..." << std::endl << std::endl;
-			
-			// printAtomList(surroundingAtoms);
-			// std::cout << "surroundingAtoms.size() = " << surroundingAtoms.size() << std::endl;
-			// std::cout << "centerBinAtoms.size() = " << centerBinAtoms.size() << std::endl;
-	//		std::cout << "updating the neighbor list for each atom in the center bin..." << std::endl;
-			
-	//		dAlphaTotalTime = std::chrono::seconds::zero();
-	//		dRTotalTime = std::chrono::seconds::zero();
 
+			//debug
+			// std::cout << "updating the neighbor list process[" << World.rank() << "]..." << std::endl;
 
-			//mpi test
 			int binAtomsCount = centerBinAtoms.size();
-			// MPI_Bcast(&binAtomsCount, 1, MPI_INT, 0, MPI_COMM_WORLD); //one-to-all send/recv
-
 			//for each atom in the bin
 			#pragma omp parallel for num_threads(4)
 			{
@@ -183,26 +227,18 @@ public:
 					centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
 				}
 			}
-
-			// MPI_Reduce(&mypi, &pi, 1, MPI_Type_vector, MPI_SUM, 0, MPI_COMM_WORLD);
-
-				// for (auto atom : centerBinAtoms)
-				// {
-				// 	// std::cout << "about to update neighbor list..." << std::endl;
-				// 	//update neighbor list per atom
-				// 	centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
-
-				// 	// std::cout << "dAlpha's runtime = " << dAlphaTotalTime.count() << " seconds" << std::endl;
-				// 	// std::cout << "dR runtime = " << dRTotalTime.count() << " seconds" << std::endl;
-				// 	// int stop;
-				// 	// std::cin >> stop;
-				// 	// std::cout << "done updating the neighbor list..." << std::endl;
-				// }
-	//		std::cout << "dAlpha's runtime = " << dAlphaTotalTime.count() << " seconds" << std::endl;
-	//		std::cout << "dR runtime = " << dRTotalTime.count() << " seconds" << std::endl;
-	//		std::cout << "done updating the neighbor list..." << std::endl;
-			// std::cin >> stop;
 		}
+		//********************************************************************************
+
+		// //gather results
+		// if (World.rank() == scatterProcess)
+		// {
+		// 	// boost::mpi::gather(World, )
+		// }
+		// else
+		// {
+
+		// }
 
 	}
 
@@ -336,25 +372,25 @@ private:
 		return perms;
 	}
 
-	BinPosList_t getSurroundingBins(const BinPos *centerBin, const BinPosList_t &Permutations)
+	BinPosList_t getSurroundingBins(BinPos *centerBin, const BinPosList_t &Permutations)
 	{
 		BinPosList_t surroundingBins;
 		int xBin, yBin, zBin;
 		
 		for (auto perm : Permutations)
 		{
-			xBin = mod( centerBin->xBin + perm->xBin, data->getNBinsX() );
-			yBin = mod( centerBin->yBin + perm->yBin, data->getNBinsY() );
-			zBin = mod( centerBin->zBin + perm->zBin, data->getNBinsZ() );
+			xBin = mod( centerBin->xBin() + perm->xBin(), data->getNBinsX() );
+			yBin = mod( centerBin->yBin() + perm->yBin(), data->getNBinsY() );
+			zBin = mod( centerBin->zBin() + perm->zBin(), data->getNBinsZ() );
 
 			surroundingBins.push_back( new BinPos(xBin, yBin, zBin) );
 		}
 		return surroundingBins;
 	}
 
-	AtomList_t getBinAtoms(const BinPos* bin)
+	AtomList_t getBinAtoms(BinPos* bin)
 	{
-		auto binKey = getBinID( bin->xBin, bin->yBin, bin->zBin);
+		auto binKey = getBinID( bin->xBin(), bin->yBin(), bin->zBin());
 		return BinAtomList[binKey];
 	}
 

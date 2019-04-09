@@ -1,6 +1,9 @@
 #ifndef CONFIG_DATA_H
 #define CONFIG_DATA_H
 
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+
 #include "Types.h"
 #include "SourceIncludes.h"
 
@@ -8,6 +11,8 @@
 class ConfigData
 {
 private:
+	friend class boost::serialization::access;
+
 	int NDim;
 	int NIons;
 	int NElec;
@@ -24,6 +29,28 @@ private:
 	double Rho;
 	double Z;		//atomic charge
 	double M; 		//atomic mass
+
+
+	template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & NDim;
+        ar & NIons;
+        ar & NElec;
+        ar & NBinsX;
+        ar & NBinsY;
+        ar & NBinsZ;
+        ar & BoxSize;
+        ar & Radius;
+        ar & InitPos;
+        ar & dT;
+        ar & Cr;
+        ar & Ci;
+        ar & S;
+        ar & Rho;
+        ar & Z;
+        ar & M;
+    }
 
 
 public:
@@ -59,6 +86,7 @@ public:
 	int getNBinsX() const { return NBinsX; }
 	int getNBinsY() const { return NBinsY; }
 	int getNBinsZ() const { return NBinsZ; }
+	int getNBins() const { return NBinsX*NBinsY*NBinsZ; }
 	BoxSize_t getBoxSize() const { return BoxSize; }
 	double getCutoffRadius() const { return Radius; }
 	std::string getInitPos() const { return InitPos; }
@@ -112,7 +140,7 @@ public:
 			std::cout << "\t# Dim[" << count << "] = " << dim << std::endl;
 			count++;
 		}
-		std::cout << "\t# CutoffRadius = " << NElec << std::endl;
+		std::cout << "\t# CutoffRadius = " << Radius << std::endl;
 		std::cout << "\t# InitPos = " << InitPos << std::endl;
 		std::cout << "\t# dT = " << dT << std::endl;
 		std::cout << "# Gaussian Parameters:" << std::endl;

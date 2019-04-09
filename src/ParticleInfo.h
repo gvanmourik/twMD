@@ -8,9 +8,19 @@
 class ParticleInfo
 {
 private:
+	friend class boost::serialization::access;
+
 	double X;
 	double Y;
 	double Z;
+
+	template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & X;
+        ar & Y;
+        ar & Z;
+    }
 
 
 public:
@@ -44,6 +54,7 @@ public:
 class Position : public ParticleInfo 
 {
 public:
+	Position() : ParticleInfo(0.0, 0.0, 0.0) {}
 	Position(double _X, double _Y, double _Z) : ParticleInfo(_X, _Y, _Z) {}
 	~Position() {}
 
@@ -58,6 +69,7 @@ public:
 class Velocity : public ParticleInfo 
 {
 public:
+	Velocity() : ParticleInfo(0.0, 0.0, 0.0) {}
 	Velocity(double _X, double _Y, double _Z) : ParticleInfo(_X, _Y, _Z) {}
 	~Velocity() {}
 
