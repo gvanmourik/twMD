@@ -158,6 +158,12 @@ public:
 					CD.setM( std::atof(value.c_str()) );
 				}
 
+				// parallelization descriptors
+				if ( descriptor == "ThreadCount" )
+				{
+					CD.setThreadCount( std::atoi(value.c_str()) );
+				}
+
 
 				std::getline(configFile, currentLine);
 			}
