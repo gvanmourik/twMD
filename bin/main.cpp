@@ -38,6 +38,7 @@ int main(int argc, char** argv)
 	{
 		box->printAtoms();
 		box->printElectrons();
+		box->printOverlapValues();
 		
 		// box->printBins();
 	}

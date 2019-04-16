@@ -24,6 +24,9 @@ typedef std::vector<std::size_t> BinIDList_t;
 typedef std::vector<BinPos*> BinPosList_t;
 typedef std::map<std::size_t, CD_t> OverlapMap_t;
 
+CD_t j(0.0, 1.0);
+double SQRT_SIX = sqrt(6.0);
+
 
 // void printBinPosList(BinPosList_t &binList)
 // {
@@ -89,9 +92,17 @@ public:
 			initBins();
 			std::cout << "updating the bin mapping..." << std::endl;
 			updateMapping();
+			
+			// std::cout << "computing gaussian overlap..." << std::endl;
+			// computeGaussianOverlap();
+
 			std::cout << "building the neighbor list..." << std::endl;
 		}
 		buildNeighborLists();
+
+
+		std::cout << "computing gaussian overlap..." << std::endl;
+		computeGaussianOverlap();
 	}
 
 	// access functions
@@ -120,6 +131,8 @@ public:
 		}
 	}
 
+
+	//**********************************************************************	
 	void buildNeighborLists()
 	{
 		const int parentProcess = 0;
@@ -223,16 +236,61 @@ public:
 		//-->appears to be no need to gather
 
 	}
+	//**********************************************************************
 
+
+	//**********************************************************************
 	//assumes that buildNeighborLists() has been called
 	void computeGaussianOverlap()
 	{
-		CD_t result;
+		const int parentProcess = 0;
+		const int scatterProcess = parentProcess; //scatter from parent
+		CD_t o;
 		std::size_t key, conjKey;
 		AtomList_t neighbors;
 		GaussianList_t gaussians1, gaussians2;
+		AtomList_t recvAtomList;
+		std::vector<AtomList_t> AtomSections( World.size() );
 
-		for (auto atom1 : Atoms)
+
+		// std::cout << "in computeGaussianOverlap()..." << std::endl;
+
+		//split up Atoms into sections
+		if (World.rank() == 0) 
+		{
+			int start, end;
+			int numAtoms = Atoms.size();
+			int numProcesses = World.size();
+			int myFloor = floor(numAtoms/numProcesses);
+			int stride = ceil(numAtoms/numProcesses);
+
+			// split bin positions based on number of processors
+			for (int process=0; process<numProcesses; ++process)
+			{
+				//determine end and start indicies of bin sections
+				start = process*stride;
+				if (myFloor != stride && process == numProcesses-1)
+					end = numAtoms % start;
+				else
+					end = start + stride;
+
+				//place bins in sections
+				AtomList_t atomSection;
+				for (int i=start; i<end; ++i)
+				{
+					atomSection.push_back( Atoms[i] );
+				}
+				AtomSections[process] = atomSection;
+			}
+  		}
+  		std::cout << "in Process[" << World.rank() << "]..." << std::endl;
+
+  		//scatter atom sections to processes
+  		boost::mpi::scatter(World, AtomSections, recvAtomList, scatterProcess);
+  		std::cout << "recvAtomList.size() for process[" << World.rank() << "] = " << recvAtomList.size() << std::endl;
+
+  		//perform the computation
+		for (auto atom1 : recvAtomList)
 		{
 			neighbors = atom1->getNeighbors();
 			gaussians1 = atom1->getGaussians();
@@ -247,13 +305,15 @@ public:
 						key = getOverlapKey(atom1, g1, atom2, g2);
 						conjKey = getOverlapKey(atom2, g2, atom1, g1);
 
+						// std::cout << "key = " << key << std::endl;
+
 						//check if key exists in map
-						if ( inOverlapMap(key) )
+						if ( !inOverlapMap(key) )
 						{
 							//if not, add to both
-							result = doSomething(g1, g2);
-							GaussianOverlapMap[key] = result;
-							GaussianOverlapMap[conjKey] = std::conj(result);
+							o = overlap(g1, g2);
+							GaussianOverlapMap[key] = o;
+							GaussianOverlapMap[conjKey] = std::conj(o);
 						}
 					}
 				}
@@ -261,12 +321,72 @@ public:
 		}
 	}
 
-
-	CD_t doSomething(Gaussian* g1, Gaussian* g2)
+	//compute the gaussian overlap between two gau
+	CD_t overlap(Gaussian* g1, Gaussian* g2)
 	{
-		CD_t result(1.0, 1.0);
+		// std::cout << "in overlap()..." << std::endl;
+
+		// r12 = 1.0
+		// g1 = 1.0
+		// g2 = 2.0
+		// 1.8 + j0.55
+		// 1.89 + j0.52
+
+
+		// double r12 = 1.0;
+		
+		// double CR1 = 1.0;
+		// double CI1 = 1.0;
+		// double S1 = 1.0;
+		// double Rho1 = 1.0;
+
+		// double CR2 = 2.0;
+		// double CI2 = 2.0;
+		// double S2 = 2.0;
+		// double Rho2 = 2.0;
+		
+		// g1->setCr(1.0);
+		// g1->setCi(1.0);
+		// g1->setS(1.0);
+		// g1->setRho(1.0);
+
+		// g2->setCr(1.0);
+		// g2->setCi(1.0);
+		// g2->setS(1.0);
+		// g2->setRho(1.0);
+
+		// std::cout << "radius^2 = " << r12(g1,g2) << std::endl;
+
+
+		CD_t result = ( 6.0 * SQRT_SIX * (g1->Ci()+j*g1->Cr()) * (j*g2->Ci()+g2->Cr()) * g1->S() * g2->S() ) /
+			(
+				(exp( (r12(g1,g2) * (3.0 + j*2.0*g1->Rho()*g1->S()) * (j*3.0 + 2.0*g2->Rho()*g2->S())) /
+				  (4.0 * (j*3.0 * pow(g2->S(),2.0) - 2.0*g1->Rho()*g1->S()*pow(g2->S(),2.0) + 
+				   	pow(g1->S(),2.0) * (j*3.0 + 2.0*g2->Rho()*g2->S()))) )
+				) *
+				(sqrt( j*(-2.0)*g2->Rho()*g1->S() + (3.0*g1->S())/g2->S() + j*2.0*g1->Rho()*g2->S() + 
+					(3.0*g2->S())/g1->S() )
+				) *
+				(j*3.0*pow(g2->S(),2.0) - 2.0*g1->Rho()*g1->S()*pow(g2->S(),2.0) + pow(g1->S(),2.0) * 
+					(j*3.0 + 2.0*g2->Rho()*g2->S()) 
+				)
+			);
+		
+		// std::cout << "result = " << result << std::endl;
 		return result;
-	}  
+	}
+
+	//returns the distance squared between two gaussians
+	double r12(Gaussian* g1, Gaussian* g2)
+	{
+		auto r1 = g1->pos();
+		auto r2 = g2->pos();
+
+		return pow(r1->x() - r2->x(), 2.0) + 
+			pow(r1->y() - r2->y(), 2.0) + 
+			pow(r1->z() - r2->z(), 2.0);
+	}
+	//**********************************************************************
 
 
 	//print atom positions
@@ -325,6 +445,16 @@ public:
 		}
 	}
 
+	void printOverlapValues()
+	{
+		std::cout << "Overlap Values:" << std::endl;
+		for (auto overlap_pair : GaussianOverlapMap)
+		{
+			std::cout << overlap_pair.second << std::endl;
+		}
+		std::cout << std::endl;
+	}
+
 private: 
 	// set the initial atom positions based on the the InitPos parameter
 	//  in the config file
@@ -375,7 +505,7 @@ private:
 				{
 					x = 0.1;
 					y = 0.1;
-					z = 0.9;
+					z = 2.2;
 				} 
 			}
 
@@ -533,10 +663,10 @@ private:
 	std::size_t getOverlapKey(Atom* atom1, Gaussian* g1, Atom* atom2, Gaussian* g2)
 	{
 		std::size_t key = 0;
-		boost::hash_combine(key, &atom1);
-		boost::hash_combine(key, &g1);
-		boost::hash_combine(key, &atom2);
-		boost::hash_combine(key, &g2);
+		boost::hash_combine(key, atom1);
+		boost::hash_combine(key, g1);
+		boost::hash_combine(key, atom2);
+		boost::hash_combine(key, g2);
 
 		return key;
 	}

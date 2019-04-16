@@ -35,6 +35,7 @@ public:
 	void set_y(double _Y) { Y = _Y; }
 	void set_z(double _Z) { Z = _Z; }
 
+
 	friend class Position;
 	friend class Velocity;
 };
