@@ -101,8 +101,13 @@ public:
 		buildNeighborLists();
 
 
-		std::cout << "computing gaussian overlap..." << std::endl;
+		if (World.rank() == 0)
+		{
+			std::cout << "computing gaussian overlap..." << std::endl;
+		}
 		computeGaussianOverlap();
+
+		V_ii();
 	}
 
 	// access functions
@@ -360,7 +365,7 @@ public:
 
 		CD_t result = ( 6.0 * SQRT_SIX * (g1->Ci()+j*g1->Cr()) * (j*g2->Ci()+g2->Cr()) * g1->S() * g2->S() ) /
 			(
-				(exp( (r12(g1,g2) * (3.0 + j*2.0*g1->Rho()*g1->S()) * (j*3.0 + 2.0*g2->Rho()*g2->S())) /
+				(exp( (r12(g1->pos(),g2->pos()) * (3.0 + j*2.0*g1->Rho()*g1->S()) * (j*3.0 + 2.0*g2->Rho()*g2->S())) /
 				  (4.0 * (j*3.0 * pow(g2->S(),2.0) - 2.0*g1->Rho()*g1->S()*pow(g2->S(),2.0) + 
 				   	pow(g1->S(),2.0) * (j*3.0 + 2.0*g2->Rho()*g2->S()))) )
 				) *
@@ -376,18 +381,79 @@ public:
 		return result;
 	}
 
-	//returns the distance squared between two gaussians
-	double r12(Gaussian* g1, Gaussian* g2)
-	{
-		auto r1 = g1->pos();
-		auto r2 = g2->pos();
+	
+	//**********************************************************************
 
+
+	//**********************************************************************
+	//returns the total interactive potential across all ions
+	double V_ii()
+	{
+		double r;
+		double sum = 0.0;
+		double Z = data->getCharge();
+		AtomList_t Neighbors;
+
+		for (auto atom : Atoms)
+		{
+			Neighbors = atom->getNeighbors();
+			for (auto neighbor : Neighbors)
+			{
+				r = r12(atom->pos(), neighbor->pos());
+				sum += 1.0/sqrt(r);
+			}
+		}
+
+		std::cout << "V_ii = " << pow(Z,2.0) / 2.0 * sum << std::endl;
+		return pow(Z,2.0) / 2.0 * sum;
+	}
+
+	//TODO!!!!!!!!!!
+	void V_ie() {}
+	void V_ee() {}
+
+	//kinetic energy between two gaussians...currently does not find the total kinetic energy across the electrons
+	CD_t T_e(Gaussian* g1, Gaussian* g2) 
+	{
+		double h = 1.0;
+		double m = 1.0;
+		CD_t gamma1 = gamma(g1);
+		CD_t gamma2 = gamma(g2);
+		
+		return (-1.0) * gamma2 * pow(h,2.0) * pow(m,-1) * std::conj(gamma1) *
+			pow((gamma2+std::conj(gamma1)),-2.0) * 
+			((-3.0)*gamma2+((-3.0)+2.0*gamma2*r12(g1->pos(),g2->pos()))*std::conj(gamma1));
+	}
+
+	//helper function for T_e()
+	CD_t gamma(Gaussian* g)
+	{
+		return (3.0/(4.0*pow(g->S(),2.0))) - ((j*g->Rho())/(2.0*g->S()));
+	}
+
+	//kinetic energy over all ions
+	void T_i() 
+	{
+		double sum = 0.0;
+		double m = data->getMass();
+		for (auto atom : Atoms)
+		{
+			// v() returns the velocity squared
+			sum += atom->v();
+		}
+		return m / 2.0 * sum;
+	}
+
+	//**********************************************************************
+
+
+	//returns the distance squared between two positions
+	double r12(Position* r1, Position* r2)
+	{
 		return pow(r1->x() - r2->x(), 2.0) + 
 			pow(r1->y() - r2->y(), 2.0) + 
 			pow(r1->z() - r2->z(), 2.0);
 	}
-	//**********************************************************************
-
 
 	//print atom positions
 	void printAtoms()

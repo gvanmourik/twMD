@@ -57,6 +57,11 @@ public:
 	{
 		return pow(P->x(), 2.0) + pow(P->y(), 2.0) + pow(P->z(), 2.0);
 	}
+	//returns the magnitude of the velocity squared
+	double v()
+	{
+		return pow(V->x(),2.0) + pow(V->y(),2.0) + pow(V->z(),2.0);
+	}
 	int getGaussianCount() const { return Gaussians.size(); }
 	AtomList_t getNeighbors() const { return Neighbors; }
 	GaussianList_t getGaussians() const { return Gaussians; }
