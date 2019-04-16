@@ -13,56 +13,60 @@
 #include "Atom.h"
 #include "Types.h"
 #include "BinPos.h"
+#include "Electron.h"
 #include "ParticleInfo.h"
 #include "SourceIncludes.h"
 
 enum dim{X,Y,Z};
 
-// typedef std::vector<Atom*> AtomList_t;
 typedef std::map<std::size_t, AtomList_t> BinMap_t;
 typedef std::vector<std::size_t> BinIDList_t;
 typedef std::vector<BinPos*> BinPosList_t;
-// typedef std::unordered_map<std::size_t, BinPos> keyToBin_t;
-// typedef std::unordered_map<BinPos, std::size_t> binToKey_t;
-// 
-void printBinPosList(BinPosList_t &binList)
-{
-	for (auto binPos : binList)
-	{
-		binPos->print();
-	}
-}
+typedef std::map<std::size_t, CD_t> OverlapMap_t;
 
-void printAtomList(AtomList_t &Atoms)
-{
-	int atomCount = 0;
-	std::cout << "Atoms: " << std::endl;
-	for (auto atom : Atoms)
-	{
-		atomCount++;
-		// std::cout << "Bin = " << BinAtomList[getKey(atom->x(), atom->y(), atom->z())]->print() << std::endl;
-		std::cout << "Atom " << atomCount << " {" << std::endl; 
-		std::cout << "\t(";
-		atom->print();
-		std::cout << ")" << std::endl;
-		std::cout << "\n}" << std::endl;
-	}
-}
+
+// void printBinPosList(BinPosList_t &binList)
+// {
+// 	for (auto binPos : binList)
+// 	{
+// 		binPos->print();
+// 	}
+// }
+
+// void printAtomList(AtomList_t &Atoms)
+// {
+// 	int atomCount = 0;
+// 	std::cout << "Atoms: " << std::endl;
+// 	for (auto atom : Atoms)
+// 	{
+// 		atomCount++;
+// 		// std::cout << "Bin = " << BinAtomList[getKey(atom->x(), atom->y(), atom->z())]->print() << std::endl;
+// 		std::cout << "Atom " << atomCount << " {" << std::endl; 
+// 		std::cout << "\t(";
+// 		atom->print();
+// 		std::cout << ")" << std::endl;
+// 		std::cout << "\n}" << std::endl;
+// 	}
+// }
 
 
 class Box
 {
 private:
 	AtomList_t Atoms;
+	ElectronList_t Electrons;
 	BinMap_t BinAtomList;
 	BinIDList_t BinIDs;
 	BinPosList_t BinPositions;
-	boost::mpi::communicator World;
-	// keyToBin_t keyToBin;
-	// binToKey_t binToKey;
+	OverlapMap_t GaussianOverlapMap;
 
+	//mpi
+	boost::mpi::communicator World;
+
+	//config file data
 	ConfigData* data;
 
+	//box and bin sizes
 	double xBoxSize, yBoxSize, zBoxSize;	//box size in x,y,z
 	double xBinSize, yBinSize, zBinSize;	//bin size in x,y,z
 
@@ -77,8 +81,10 @@ public:
 
 		if (World.rank() == 0)
 		{
-			std::cout << "initializing atom positions..." << std::endl;
-			initPos();
+			std::cout << "initializing atoms..." << std::endl;
+			initAtoms();
+			std::cout << "initializing electrons..." << std::endl;
+			initElectrons();
 			std::cout << "initializing bins..." << std::endl;
 			initBins();
 			std::cout << "updating the bin mapping..." << std::endl;
@@ -122,24 +128,7 @@ public:
 		BinPosList_t stencil;
 		BinPosList_t recvBins;
 		std::vector<BinPosList_t> binSections( World.size() );
-		
-		//debug
-		// std::cout << "generating the stencil..." << std::endl;s
 
-		
-
-		//debug
-		// std::cout << "stencil:" << std::endl;
-		// printBinPosList(stencil);
-		// std::cout << std::endl;
-
-		// int bincount = 0;
-	//	int stop;
-	//	std::chrono::duration<double> dAlphaTotalTime;
-	//	std::chrono::duration<double> dRTotalTime;
-	
-
-		
 		
 		if (World.rank() == 0) 
 		{
@@ -175,11 +164,11 @@ public:
 		//bcast stencil and bin positions
 		broadcast(World, stencil, parentProcess);
 		broadcast(World, cutoffRadius, parentProcess);
-		broadcast(World, data, parentProcess);
-		broadcast(World, xBoxSize, parentProcess);
-		broadcast(World, yBoxSize, parentProcess);
-		broadcast(World, zBoxSize, parentProcess);
-		broadcast(World, BinAtomList, parentProcess);
+		// broadcast(World, data, parentProcess);
+		// broadcast(World, xBoxSize, parentProcess);
+		// broadcast(World, yBoxSize, parentProcess);
+		// broadcast(World, zBoxSize, parentProcess);
+		// broadcast(World, BinAtomList, parentProcess);
 		std::cout << "in Process[" << World.rank() << "]..." << std::endl;
 
 
@@ -197,7 +186,6 @@ public:
 
 			//from the binPos create a stencil vector of surrounding bins
 			auto surroundingBins = getSurroundingBins(centerBin, stencil);
-			// std::cout << "getting the atoms within the center bin..." << std::endl;
 			auto centerBinAtoms = getBinAtoms(centerBin);
 
 			//debug
@@ -219,32 +207,70 @@ public:
 			// std::cout << "updating the neighbor list process[" << World.rank() << "]..." << std::endl;
 
 			int binAtomsCount = centerBinAtoms.size();
+			int thread_count = data->getThreadCount();
 			//for each atom in the bin
-			#pragma omp parallel for num_threads(4)
+			#pragma omp parallel for num_threads(thread_count)
 			{
 				for (int atom=0; atom<binAtomsCount; ++atom)
 				{
-					centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, surroundingAtoms); //dAlphaTotalTime, dRTotalTime);
+					centerBinAtoms[atom]->updateNeighborList(cutoffRadius, xBoxSize, yBoxSize, zBoxSize, 
+						surroundingAtoms, thread_count);
 				}
 			}
 		}
 		//********************************************************************************
 
-		// //gather results
-		// if (World.rank() == scatterProcess)
-		// {
-		// 	// boost::mpi::gather(World, )
-		// }
-		// else
-		// {
-
-		// }
+		//-->appears to be no need to gather
 
 	}
 
+	//assumes that buildNeighborLists() has been called
+	void computeGaussianOverlap()
+	{
+		CD_t result;
+		std::size_t key, conjKey;
+		AtomList_t neighbors;
+		GaussianList_t gaussians1, gaussians2;
+
+		for (auto atom1 : Atoms)
+		{
+			neighbors = atom1->getNeighbors();
+			gaussians1 = atom1->getGaussians();
+			for (auto atom2 : neighbors)
+			{
+				gaussians2 = atom2->getGaussians();
+				for (auto g1 : gaussians1)
+				{
+					for (auto g2 : gaussians2)
+					{
+						//get keys for overlap map
+						key = getOverlapKey(atom1, g1, atom2, g2);
+						conjKey = getOverlapKey(atom2, g2, atom1, g1);
+
+						//check if key exists in map
+						if ( inOverlapMap(key) )
+						{
+							//if not, add to both
+							result = doSomething(g1, g2);
+							GaussianOverlapMap[key] = result;
+							GaussianOverlapMap[conjKey] = std::conj(result);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	CD_t doSomething(Gaussian* g1, Gaussian* g2)
+	{
+		CD_t result(1.0, 1.0);
+		return result;
+	}  
+
 
 	//print atom positions
-	void printPositions()
+	void printAtoms()
 	{
 		int atomCount = 0;
 		std::cout << "Atoms: " << std::endl;
@@ -252,12 +278,27 @@ public:
 		{
 			atomCount++;
 			// std::cout << "Bin = " << BinAtomList[getKey(atom->x(), atom->y(), atom->z())]->print() << std::endl;
-			std::cout << "Atom " << atomCount << " {" << std::endl; 
+			std::cout << "Atom " << atomCount << "{" << std::endl; 
 			std::cout << "\t(";
 			atom->print();
 			std::cout << ")" << std::endl;
 			atom->printNeighbors();
 			std::cout << "\n}" << std::endl;
+		}
+	}
+
+	//print electron positions
+	void printElectrons()
+	{
+		int electronCount = 0;
+		std::cout << "Electrons: " << std::endl;
+		for (auto e : Electrons)
+		{
+			electronCount++;
+			// std::cout << "Bin = " << BinAtomList[getKey(atom->x(), atom->y(), atom->z())]->print() << std::endl;
+			std::cout << "Electron " << electronCount << "{" << std::endl;
+			e->print();
+			std::cout << "}" << std::endl;
 		}
 	}
 
@@ -287,10 +328,10 @@ public:
 private: 
 	// set the initial atom positions based on the the InitPos parameter
 	//  in the config file
-	bool initPos()
+	bool initAtoms()
 	{
 		double x,y,z;
-		for (int ion = 0; ion < data->getNIons(); ++ion)
+		for (int ion = 0; ion < 6/*data->getNIons()*/; ++ion)
 		{
 			//check data->initPos, as it won't always be random
 			if ( data->getInitPos() == "random" )
@@ -299,30 +340,85 @@ private:
 				y = getRandom(0.0, yBoxSize);
 				z = getRandom(0.0, zBoxSize);
 				
-				// // test with set positions
-				// if (ion == 0)
-				// {
-				// 	x = 0.1;
-				// 	y = 0.1;
-				// 	z = 0.1;
-				// } 
-				// if (ion == 1)
-				// {
-				// 	x = 0.1;
-				// 	y = 1.9;
-				// 	z = 0.1;
-				// } 
-				// if (ion == 2)
-				// {
-				// 	x = 0.1;
-				// 	y = 0.1;
-				// 	z = 1.0;
-				// } 
+				// test with set positions
+				if (ion == 0)
+				{
+					x = 0.1;
+					y = 0.1;
+					z = 0.1;
+				} 
+				if (ion == 1)
+				{
+					x = 0.1;
+					y = 1.9;
+					z = 0.1;
+				} 
+				if (ion == 2)
+				{
+					x = 0.1;
+					y = 0.1;
+					z = 1.0;
+				}
+				if (ion == 3)
+				{
+					x = 0.1;
+					y = 0.1;
+					z = 1.1;
+				}
+				if (ion == 4)
+				{
+					x = 0.1;
+					y = 0.1;
+					z = 1.2;
+				} 
+				if (ion == 5)
+				{
+					x = 0.1;
+					y = 0.1;
+					z = 0.9;
+				} 
 			}
 
 			//add other InitPos modes
 
 			addAtom(x, y, z, data->getMass(), data->getCharge());
+		}
+		return true;
+	}
+
+	//assumes that initAtoms() had already been called
+	bool initElectrons()
+	{
+		int numElec = data->getNElec();
+		int thread_count = data->getThreadCount();
+
+		#pragma omp parallel for num_threads(thread_count)
+		{
+			for (int i=0; i < numElec; ++i)
+			{
+				Electron* e = new Electron();
+				Gaussian* g;
+
+				//add gaussian to each atom in the box
+				for (auto atom : Atoms)
+				{	
+					g = new Gaussian(e,
+						data->getCr(),
+						data->getCi(),
+						data->getS(), 
+						data->getRho(),
+						atom->pos()
+					);
+					e->addGaussian(g);
+					atom->addGaussian(g); //add to the gaussian list associated with each atom
+				}
+
+				//add to the electron list
+				#pragma omp critical
+				{
+					Electrons.push_back(e);
+				}
+			}
 		}
 		return true;
 	}
@@ -432,6 +528,25 @@ private:
 		// std::cout << zBin << "}" << std::endl;
 
 		return key;
+	}
+
+	std::size_t getOverlapKey(Atom* atom1, Gaussian* g1, Atom* atom2, Gaussian* g2)
+	{
+		std::size_t key = 0;
+		boost::hash_combine(key, &atom1);
+		boost::hash_combine(key, &g1);
+		boost::hash_combine(key, &atom2);
+		boost::hash_combine(key, &g2);
+
+		return key;
+	}
+
+	bool inOverlapMap(std::size_t key)
+	{
+		if ( GaussianOverlapMap.find(key) == GaussianOverlapMap.end() ) {
+			return false;
+		}
+		return true;
 	}
 
 	int mod(const int &a, const int &b)

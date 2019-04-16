@@ -3,22 +3,42 @@
 
 #include "Gaussian.h"
 
-typedef std::vector<Gaussian*> GaussianList_t;
+class Electron;
+typedef std::vector<Electron*> ElectronList_t;
 
 class Electron
 {
 private:
+	friend class boost::serialization::access;
 	GaussianList_t Gaussians;
+
+	template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & Gaussians;
+    }
 
 public:
 	// Access functions
 	GaussianList_t getGaussians() { return Gaussians; }
+	
 
-
-	void addGaussian(double Cr, double Ci, double S, double Rho, Position* Pos) 
+	bool addGaussian(Gaussian* g) 
 	{ 
-		Gaussian* g = new Gaussian(Cr, Ci, S, Rho, Pos);
 		Gaussians.push_back(g);
+		return true;
+	}
+
+
+	void print()
+	{
+		std::cout << "\tGaussians: " << std::endl;
+		for (auto g : Gaussians)
+		{
+			std::cout << "\t\t";
+			g->print();
+			std::cout << std::endl;
+		}
 	}
 
 };

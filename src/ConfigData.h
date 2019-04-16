@@ -29,6 +29,7 @@ private:
 	double Rho;
 	double Z;		//atomic charge
 	double M; 		//atomic mass
+	int ThreadCount;
 
 
 	template<class Archive>
@@ -50,6 +51,7 @@ private:
         ar & Rho;
         ar & Z;
         ar & M;
+        ar & ThreadCount;
     }
 
 
@@ -79,6 +81,7 @@ public:
 	void setRho(double _Rho) { Rho = _Rho; }
 	void setZ(double _Z) { Z = _Z; }
 	void setM(double _M) { M = _M; }
+	void setThreadCount(int _count) { ThreadCount = _count; }
 	
 	int getNDim() const { return NDim; }
 	int getNIons() const { return NIons; }
@@ -97,32 +100,8 @@ public:
 	double getRho() const { return Rho; }
 	double getCharge() const { return Z; }
 	double getMass() const { return M; }
+	double getThreadCount() const { return ThreadCount; }
 
-	// double getMaxBinSize()
-	// {
-	// 	double binSize;
-	// 	double maxBinSize = 0;
-
-	// 	//create numBins vector
-	// 	std::vector<int> NumBins(BoxSize.size());
-	// 	NumBins.push_back(NBinsX);
-	// 	NumBins.push_back(NBinsY);
-	// 	NumBins.push_back(NBinsZ);
-
-	// 	//find maxBinSize
-	// 	for (int dim=0; dim < BoxSize.size(); ++dim)
-	// 	{
-	// 		// std::cout << dim << std::endl;
-	// 		binSize = BoxSize[dim] / (double)NumBins[dim];
-	// 		std::cout << "(double)NumBins[dim] = " << (double)NumBins[dim] << std::endl;
-	// 		if (binSize > maxBinSize)
-	// 		{
-	// 			maxBinSize = binSize;
-	// 			std::cout << "maxbinsize = " << maxBinSize << std::endl;
-	// 		}
-	// 	}
-	// 	return maxBinSize;
-	// }
 
 	void print()
 	{
@@ -151,6 +130,8 @@ public:
 		std::cout << "# Atomic Parameters:" << std::endl;
 		std::cout << "\t# AtomicCharge = " << Z << std::endl;
 		std::cout << "\t# AtomicMass = " << M << std::endl;
+		std::cout << "# Parallelization Parameters:" << std::endl;
+		std::cout << "\t# ThreadCount = " << ThreadCount << std::endl;
 		std::cout << std::endl;
 	}
 

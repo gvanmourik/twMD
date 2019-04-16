@@ -4,12 +4,10 @@
 #include "SourceIncludes.h"
 
 
-#define NOT_SET_DOUBLE -1.0
-#define NOT_SET_POS nullptr
-
 // Typedefs
 typedef std::vector<double> BoxSize_t;
 typedef std::unordered_map<std::string, bool> CheckSet_t;
+typedef std::complex<double> CD_t;
 
 
 // X-macros

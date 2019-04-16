@@ -2,9 +2,8 @@
 #include <iostream>
 #include <boost/mpi.hpp>
 
-#include "FileIO.h"
 #include "Box.h"
-#include "Electrons.h"
+#include "FileIO.h"
 
 
 bool checkArgCount(int argc);
@@ -34,9 +33,14 @@ int main(int argc, char** argv)
 	Box* box = new Box(&configData, world);
 	//debug with print
 	
-	// if (world.rank() == 0)
-	// 	box->printPositions();
-	// box->printBins();
+
+	if (world.rank() == 0)
+	{
+		box->printAtoms();
+		box->printElectrons();
+		
+		// box->printBins();
+	}
 
 
 	return 0;

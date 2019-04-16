@@ -1,84 +1,63 @@
 #ifndef GAUSSIAN_H
 #define GAUSSIAN_H
 
+#include <boost/serialization/vector.hpp>
+
 #include "Types.h"
 #include "ParticleInfo.h"
+
+class Electron;
+class Gaussian;
+typedef std::vector<Gaussian*> GaussianList_t;
 
 class Gaussian
 {
 private:
-	double Cr; 		//real-part of the gaussian mag
-	double Ci; 		//imag-part of the gaussian mag
-	double S; 		//gaussian width
-	double Rho;		//gaussian momentum
+	friend class boost::serialization::access;
+
+	double cr; 		//real-part of the gaussian mag
+	double ci; 		//imag-part of the gaussian mag
+	double s; 		//gaussian width
+	double rho;		//gaussian momentum
+	Electron* elec;	//pointer to the associated electron
 	Position* Pos;	//pointer to the position of the gaussian
 
+	template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & cr;
+        ar & ci;
+        ar & s;
+        ar & rho;
+        ar & elec;
+        ar & Pos;
+    }
+
 public:
-	Gaussian() : Cr(NOT_SET_DOUBLE), Ci(NOT_SET_DOUBLE),
-				 S(NOT_SET_DOUBLE), Rho(NOT_SET_DOUBLE),
-				 Pos(nullptr) {}
-	Gaussian(double _Cr, double _Ci, double _S, double _Rho, Position* _Pos) :
-				 Cr(_Cr), Ci(_Ci),
-				 S(_S), Rho(_Rho),
-				 Pos(_Pos) {}
+	Gaussian() {}
+	Gaussian(Electron* _elec, double _Cr, double _Ci, double _S, double _Rho, Position* _Pos) :
+		elec(_elec), cr(_Cr), ci(_Ci),
+		s(_S), rho(_Rho), Pos(_Pos) {}
 	~Gaussian() {}
 
 	// Access functions
-	void setCr(double _Cr) { Cr = _Cr; }
-	void setCi(double _Ci) { Ci = _Ci; }
-	void setS(double _S) { S = _S; }
-	void setRho(double _Rho) { Rho = _Rho; }
+	void setCr(double _Cr) { cr = _Cr; }
+	void setCi(double _Ci) { ci = _Ci; }
+	void setS(double _S) { s = _S; }
+	void setRho(double _Rho) { rho = _Rho; }
 	void setPos(Position* _Pos) { Pos = _Pos; }
 
-	bool getCr(double &retCr) 
-	{ 
-		if (Cr != NOT_SET_DOUBLE) 
-		{
-			retCr = Cr;
-			return true;
-		}
-		return false;
-	}
+	double Cr() const { return cr; }
+	double Ci() const { return ci; }
+	double S() const { return s; }
+	double Rho() const { return rho; }
+	Electron* e() const { return elec; }
+	Position* pos() const { return Pos; }
 
-	bool getCi(double &retCi) 
-	{ 
-		if (Ci != NOT_SET_DOUBLE) 
-		{
-			retCi = Ci;
-			return true;
-		}
-		return false;
-	}
 
-	bool getS(double &retS) 
-	{ 
-		if (S != NOT_SET_DOUBLE) 
-		{
-			retS = S;
-			return true;
-		}
-		return false;
-	}
-
-	bool getRho(double &retRho) 
-	{ 
-		if (Rho != NOT_SET_DOUBLE) 
-		{
-			retRho = Rho;
-			return true;
-		}
-		return false;
-	}
-
-	// pass the pos pointer by reference
-	bool getPos(Position* &retPos) 
-	{ 
-		if (Pos != NOT_SET_POS) 
-		{
-			retPos = Pos;
-			return true;
-		}
-		return false;
+	void print()
+	{
+		Pos->print();
 	}
 
 };

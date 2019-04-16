@@ -35,17 +35,6 @@ public:
 	void set_y(double _Y) { Y = _Y; }
 	void set_z(double _Z) { Z = _Z; }
 
-	// // generate a hash value for the particle;
-	// std::size_t getKey()
-	// {
-	// 	std::size_t seed = 0;
-	// 	boost::hash_combine(seed, X);
-	// 	boost::hash_combine(seed, Y);
-	// 	boost::hash_combine(seed, Z);
-
-	// 	return seed;
-	// }
-
 	friend class Position;
 	friend class Velocity;
 };
