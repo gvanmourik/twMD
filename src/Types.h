@@ -35,17 +35,5 @@ bool isInitPosType(std::string type)
 	return true;
 }
 
-// #define CONFIG_FILE \
-//   CONFIG_FILE_MEMBER(NDim, int) \
-//   CONFIG_FILE_MEMBER(NIons, int) \
-//   CONFIG_FILE_MEMBER(NElec, int) \
-//   CONFIG_FILE_MEMBER(BoxSize, int[]) \
-//   CONFIG_FILE_MEMBER(radius, double)
-
-
-
-
-
-
 
 #endif /* TYPES_H */

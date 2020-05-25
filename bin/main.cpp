@@ -18,7 +18,6 @@ int main(int argc, char** argv)
 		return -1;
 	std::string configFilePath = argv[1];
 
-
 	//Read-in file
 	FileIO file;
 	ConfigData configData;
@@ -31,19 +30,14 @@ int main(int argc, char** argv)
 
 	//init atom positions
 	Box* box = new Box(&configData, world);
-	//debug with print
 	
-
 	if (world.rank() == 0)
 	{
 		box->printAtoms();
 		box->printElectrons();
 		box->printOverlapValues();
-		
 		// box->printBins();
 	}
-
-
 	return 0;
 }
 

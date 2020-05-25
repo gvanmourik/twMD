@@ -28,31 +28,6 @@ CD_t j(0.0, 1.0);
 double SQRT_SIX = sqrt(6.0);
 
 
-// void printBinPosList(BinPosList_t &binList)
-// {
-// 	for (auto binPos : binList)
-// 	{
-// 		binPos->print();
-// 	}
-// }
-
-// void printAtomList(AtomList_t &Atoms)
-// {
-// 	int atomCount = 0;
-// 	std::cout << "Atoms: " << std::endl;
-// 	for (auto atom : Atoms)
-// 	{
-// 		atomCount++;
-// 		// std::cout << "Bin = " << BinAtomList[getKey(atom->x(), atom->y(), atom->z())]->print() << std::endl;
-// 		std::cout << "Atom " << atomCount << " {" << std::endl; 
-// 		std::cout << "\t(";
-// 		atom->print();
-// 		std::cout << ")" << std::endl;
-// 		std::cout << "\n}" << std::endl;
-// 	}
-// }
-
-
 class Box
 {
 private:
